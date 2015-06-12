@@ -5,7 +5,7 @@ unit ucomport;
 interface
 
 uses
-  Forms,Classes, SysUtils,LCLIntf, Dialogs,LCLProc,
+  Forms,Classes, SysUtils,LCLIntf, Dialogs,LCLProc,syncobjs,
   {$IFDEF DARWIN}
   serial_osx
   {$ELSE}
@@ -69,6 +69,7 @@ type
     procedure SetRTS(const AValue: Boolean);
   protected
     FBuffer : string;
+    CS : syncobjs.TCriticalSection;
   public
     constructor Create(APortName : string);
     destructor Destroy;override;
@@ -123,6 +124,7 @@ end;
 
 constructor TComPort.Create(APortName: string);
 begin
+  CS := syncobjs.TCriticalSection.Create;
   FDatabits := 8;
   FStopbits := 1;
   FParity := 'N';
@@ -138,6 +140,7 @@ destructor TComPort.Destroy;
 begin
   if Active then
     Close;
+  CS.Free;
 end;
 
 function TComPort.SetParamsFromString(params: string): Boolean;
@@ -289,6 +292,7 @@ var
   aPort : TComPort;
 begin
   aPort := TComPort(Pointer(Data)^);
+  aPort.CS.Enter;
   if not Assigned(aPort) then exit;
   if (length(aPort.Fbuffer) > 0) or (length(FBuffer) > 0) then
     begin
@@ -314,10 +318,13 @@ begin
             end;
         end;
     end;
+  aPort.CS.Leave;
 end;
 procedure TRecvThread.PutData;
 begin
+  FPort.CS.Enter;
   FBuffer := FBuffer+aBuffer;
+  FPort.CS.Leave;
 end;
 procedure TRecvThread.DoExit;
 begin
