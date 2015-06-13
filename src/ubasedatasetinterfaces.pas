@@ -128,6 +128,14 @@ type
     function IsChanged : Boolean;
   end;
 
+  TAbstractDBDataset = class(TComponent)
+  private
+  public
+    procedure DefineFields(aDataSet : TDataSet);virtual;abstract;
+    procedure DefineDefaultFields(aDataSet : TDataSet;HasMasterSource : Boolean);virtual;abstract;
+    procedure DefineUserFields(aDataSet: TDataSet);virtual;abstract;
+  end;
+
 implementation
 
 end.
