@@ -19,10 +19,6 @@
           <Identifier Value="general_nogui_macro1"/>
         </Item1>
       </BuildMacros>
-      <CodeGeneration>
-        <SmartLinkUnit Value="True"/>
-        <SmallerCode Value="True"/>
-      </CodeGeneration>
     </CompilerOptions>
     <Files Count="14">
       <Item1>

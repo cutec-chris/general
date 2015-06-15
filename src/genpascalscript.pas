@@ -241,34 +241,50 @@ var
   a: Integer;
   s: String;
   ph: PLoadedDll;
-  aLibName: String;
+  aLibName: ShortString;
   actLib: String;
   aProc: aProcSleepT;
+  bLib: TLoadedLib;
+  aSelName: ShortString;
+  aSelhandle: sysutils.THandle;
 begin
   Result := ProcessDllImport(Sender,p);
 
   aLib := lowercase(copy(p.Decl,5,length(p.Decl)));
-  aLibName := lowercase(copy(aLib,0,rpos('.',aLib)-1));
+  if rpos('.',aLib)>0 then
+    aLibName := lowercase(copy(aLib,0,rpos('.',aLib)-1))
+  else if rpos(#0,aLib)>0 then
+    aLibName := lowercase(copy(aLib,0,pos(#0,aLib)-1))
+  else
+    aLibName:=lowercase(aLib);
   for a := 0 to LoadedLibs.Count-1 do
-    if (aLibName = lowercase(TLoadedLib(LoadedLibs[a]).Name)) and (TLoadedLib(LoadedLibs[a]).Handle=0) then
-      begin
-        Caller := Sender;
-        i := 2147483647; // maxint
-        repeat
-          ph := Caller.FindProcResource2(@dllFree, i);
-          if (ph = nil) then break;
-          actLib := lowercase(copy(ph^.dllname,0,rpos('.',ph^.dllname)-1));
-          if (actLib = aLibName) then
-            begin
-              TLoadedLib(LoadedLibs[a]).Handle := ph^.dllhandle;
-              aProc := aProcSleepT(dynlibs.GetProcAddress(ph^.dllhandle,'ScriptSetSleep'));
-              if Assigned(aProc) then
-                begin
-                  aProc(@OwnSleep);
-                end;
-            end;
-        until false;
-      end;
+    begin
+      bLib := TLoadedLib(LoadedLibs[a]);
+      aSelName := lowercase(bLib.Name);
+      aSelhandle := bLib.Handle;
+      if (aLibName=aSelName)
+      and (aSelhandle=0) then
+        begin
+          Caller := Sender;
+          i := 2147483647; // maxint
+          repeat
+            ph := Caller.FindProcResource2(@dllFree, i);
+            if (ph = nil) then break;
+            actLib := lowercase(copy(ph^.dllname,0,rpos('.',ph^.dllname)-1));
+            if rpos('.',ph^.dllname)=0 then
+              actLib := lowercase(ph^.dllname);
+            if (actLib = aLibName) then
+              begin
+                TLoadedLib(LoadedLibs[a]).Handle := ph^.dllhandle;
+                aProc := aProcSleepT(dynlibs.GetProcAddress(ph^.dllhandle,'ScriptSetSleep'));
+                if Assigned(aProc) then
+                  begin
+                    aProc(@OwnSleep);
+                  end;
+              end;
+          until false;
+        end;
+    end;
 end;
 function ReplaceRegExprIfMatch(const ARegExpr, AInputStr, AReplaceStr : RegExprString;
       AUseSubstitution : boolean = False) : RegExprString;
@@ -340,6 +356,8 @@ var
   tmp1,tmp2: String;
   NewLib: TLoadedLib;
   tmp3: String;
+  bLib: TLoadedLib;
+  FLibCompiled: Boolean = false;
 begin
   Result := True;
   try
@@ -481,7 +499,8 @@ begin
             for i := 0 to LoadedLibs.Count-1 do
               if TLoadedLib(LoadedLibs[i]).Name=Name then
                 begin
-                  Comp.Compile(TLoadedLib(LoadedLibs[i]).Code);
+                  bLib := TLoadedLib(LoadedLibs[i]);
+                  Comp.Compile(bLib.Code);
                   Result := True;
                   exit;
                 end;
@@ -528,9 +547,8 @@ begin
                     NewLib.Name:=Name;
                     NewLib.Code:=newUnit;
                     LoadedLibs.Add(NewLib);
-                    Comp.Compile(newUnit);
+                    Result := Comp.Compile(newUnit);
                     Procs.Free;
-                    Result := True;
                   end
                 else
                   begin
@@ -893,11 +911,13 @@ procedure TPascalScript.DoCleanUp;
 var
   i: Integer;
   aProc: aProcT2;
+  aLib: TLoadedLib;
 begin
   for i := 0 to LoadedLibs.Count-1 do
     begin
       try
-        aProc := aprocT2(dynlibs.GetProcAddress(TLoadedLib(LoadedLibs[i]).Handle,'ScriptCleanup'));
+        aLib := TLoadedLib(LoadedLibs[i]);
+        aProc := aprocT2(dynlibs.GetProcAddress(aLib.Handle,'ScriptCleanup'));
         if Assigned(aProc) then
           aProc;
       except
