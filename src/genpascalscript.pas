@@ -247,6 +247,8 @@ var
   bLib: TLoadedLib;
   aSelName: ShortString;
   aSelhandle: sysutils.THandle;
+  Found: Boolean;
+  Shouldtell: Boolean;
 begin
   Result := ProcessDllImport(Sender,p);
 
@@ -257,34 +259,42 @@ begin
     aLibName := lowercase(copy(aLib,0,pos(#0,aLib)-1))
   else
     aLibName:=lowercase(aLib);
+  Found := False;
   for a := 0 to LoadedLibs.Count-1 do
     begin
       bLib := TLoadedLib(LoadedLibs[a]);
       aSelName := lowercase(bLib.Name);
       aSelhandle := bLib.Handle;
-      if (aLibName=aSelName)
-      and (aSelhandle=0) then
+      if (aLibName=aSelName)  then
         begin
-          Caller := Sender;
-          i := 2147483647; // maxint
-          repeat
-            ph := Caller.FindProcResource2(@dllFree, i);
-            if (ph = nil) then break;
-            actLib := lowercase(copy(ph^.dllname,0,rpos('.',ph^.dllname)-1));
-            if rpos('.',ph^.dllname)=0 then
-              actLib := lowercase(ph^.dllname);
-            if (actLib = aLibName) then
-              begin
-                TLoadedLib(LoadedLibs[a]).Handle := ph^.dllhandle;
-                aProc := aProcSleepT(dynlibs.GetProcAddress(ph^.dllhandle,'ScriptSetSleep'));
-                if Assigned(aProc) then
+          if (aSelhandle=0) then
+            begin
+              Caller := Sender;
+              i := 2147483647; // maxint
+              repeat
+                ph := Caller.FindProcResource2(@dllFree, i);
+                if (ph = nil) then break;
+                actLib := lowercase(copy(ph^.dllname,0,rpos('.',ph^.dllname)-1));
+                if rpos('.',ph^.dllname)=0 then
+                  actLib := lowercase(ph^.dllname);
+                if (actLib = aLibName) then
                   begin
-                    aProc(@OwnSleep);
+                    TLoadedLib(LoadedLibs[a]).Handle := ph^.dllhandle;
+                    aProc := aProcSleepT(dynlibs.GetProcAddress(ph^.dllhandle,'ScriptSetSleep'));
+                    if Assigned(aProc) then
+                      begin
+                        aProc(@OwnSleep);
+                      end;
+                    Found := True;
                   end;
-              end;
-          until false;
+              until false;
+            end
+          else Found:=True;
+          break;
         end;
     end;
+  if not Found then
+    Shouldtell := True;
 end;
 function ReplaceRegExprIfMatch(const ARegExpr, AInputStr, AReplaceStr : RegExprString;
       AUseSubstitution : boolean = False) : RegExprString;
