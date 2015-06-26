@@ -517,11 +517,13 @@ procedure TExtMenuPageControl.Change;
 var
   x: LongInt;
   i: Integer;
+  aCnt: Integer;
 begin
   inherited Change;
   if FDontChange then exit;
   if Self.ActivePage = FNewPage then
     begin
+      aCnt := FMenu.Items.Count;
       x := TabRect(ActivePage.TabIndex).Left;
       {$IFDEF LCLCARBON}
       for i := 0 to PageCount-1 do
@@ -678,6 +680,7 @@ function TExtMenuPageControl.NewFrame(aFrameClass: TFrameClass;
   UseFunction: Boolean): Boolean;
 var
   aFrame: TTabSheet;
+  i: Integer;
 begin
   AddTabClass(aFrameClass,aClassName,aAddFunction,aImageIndex);
   if AddFrame then
@@ -688,7 +691,12 @@ begin
   else
     begin
       aFrame := GetTab(aFrameClass);
+      if Assigned(FMenu) and Assigned(aFrame) then
+        for i := 0 to FMenu.Items.Count-1 do
+           if Fmenu.Items[i].Caption = aFrame.Caption then
+             FMenu.Items[i].Enabled := True;
       if Assigned(aFrame) then aFrame.Free;
+
     end;
 end;
 
