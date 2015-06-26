@@ -905,7 +905,6 @@ begin
           FResults:= PSErrorToString(FRuntime.LastEx, '');
         if FProcess.Running then InternalKill;
         DoCleanup;
-        Result := True;
       except
         on e : Exception do
           begin

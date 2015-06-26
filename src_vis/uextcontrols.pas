@@ -189,6 +189,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy;override;
     function AddTab(aFrame : TFrame;SetActive : Boolean = True;NewName : string = '';aImageIndex : Integer = -1;UseFunction : Boolean = True) : Integer;
+    function NewFrame(aFrameClass : TFrameClass;AddFrame : Boolean;aClassName : string;aAddFunction : TNotifyEvent = nil;SetActive : Boolean = True;NewName : string = '';aImageIndex : Integer = -1;UseFunction : Boolean = True) : Boolean;
     function GetTab(aFrameClass : TFrameClass) : TTabSheet;
     procedure AddTabClass(aFrameClass : TFrameClass;aName : string;aAddFunction : TNotifyEvent = nil;aImageIndex : Integer = -1;aMultiblePages : Boolean = False);
     procedure CanHaveCustomTabs(aAddFunction : TNotifyEvent = nil);
@@ -602,6 +603,12 @@ var
   Found: Boolean;
   a: Integer;
 begin
+  for i := 0 to length(FFrameClasses)-1 do
+     if aFrame.ClassName = FFrameClasses[i].FrameClass.ClassName then
+       begin
+
+         break;
+       end;
   Result := -1;
   if not SetActive then
     Visible := False;
@@ -664,6 +671,27 @@ begin
   RefreshMenue;
   Result := Self.PageIndex;
 end;
+
+function TExtMenuPageControl.NewFrame(aFrameClass: TFrameClass;
+  AddFrame: Boolean; aClassName: string; aAddFunction: TNotifyEvent;
+  SetActive: Boolean; NewName: string; aImageIndex: Integer;
+  UseFunction: Boolean): Boolean;
+var
+  aFrame: TTabSheet;
+begin
+  AddTabClass(aFrameClass,aClassName,aAddFunction,aImageIndex);
+  if AddFrame then
+    begin
+      if GetTab(aFrameClass)=nil then
+        AddTab(aFrameClass.Create(Self),SetActive,NewName,aImageIndex,UseFunction);
+    end
+  else
+    begin
+      aFrame := GetTab(aFrameClass);
+      if Assigned(aFrame) then aFrame.Free;
+    end;
+end;
+
 function TExtMenuPageControl.GetTab(aFrameClass: TFrameClass): TTabSheet;
 var
   i: Integer;
@@ -680,7 +708,10 @@ procedure TExtMenuPageControl.AddTabClass(aFrameClass : TFrameClass;
   aName : string;aAddFunction : TNotifyEvent = nil;aImageIndex : Integer = -1;aMultiblePages : Boolean = False);
 var
   MenuItem: TMenuItem;
+  i: Integer;
 begin
+  for i := 0 to length(FFrameClasses)-1 do
+    if FFrameClasses[i].FrameClass=aFrameClass then exit;
   Setlength(FFrameClasses,length(FFrameClasses)+1);
   FMenu.Images := Images;
   with FFrameClasses[length(FFrameClasses)-1] do
