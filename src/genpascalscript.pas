@@ -136,7 +136,6 @@ type
   public
     function InternalUses(Comp : TPSPascalCompiler;Name : string) : Boolean;
     function Execute(aParameters: Variant): Boolean; override;
-    procedure DoCleanUp;
     property Runtime : TPSExec read FRuntime write SetRuntime;
     property ClassImporter : TPSRuntimeClassImporter read FClassImporter write SetClassImporter;
     property Compiler : TPSPascalCompiler read FCompiler write SetCompiler;
@@ -161,6 +160,8 @@ var
   LoadedLibs : TList;
   ActRuntime : TScript;
   DoSleep : TScriptSleepFunction = nil;
+
+  procedure DoCleanUp;
 
 implementation
 
@@ -228,6 +229,34 @@ begin
   {$ifdef WINDOWS}
   MessageBox(0,PChar(UniToSys(aMsg)),PChar('Information'),MB_ICONINFORMATION);
   {$endif}
+end;
+
+type
+  aProcT = function : pchar;stdcall;
+  aProcT2 = procedure;stdcall;
+
+procedure DoCleanUp;
+var
+  i: Integer;
+  aProc: aProcT2;
+  aLib: TLoadedLib;
+begin
+  for i := 0 to LoadedLibs.Count-1 do
+    begin
+      try
+        aLib := TLoadedLib(LoadedLibs[i]);
+        aProc := aprocT2(dynlibs.GetProcAddress(aLib.Handle,'ScriptCleanup'));
+        if Assigned(aProc) then
+          aProc;
+      except
+      end;
+    end;
+end;
+
+function UnloadProcInt(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
+begin
+  DoCleanUp;
+  UnloadProc(Caller,p,Global,Stack);
 end;
 
 function IProcessDllImport(Sender: TPSExec; p: TPSExternalProcRec; Tag: Pointer
@@ -307,10 +336,6 @@ begin
     finally Free;
    end;
 end;
-
-type
-  aProcT = function : pchar;stdcall;
-  aProcT2 = procedure;stdcall;
 
 procedure OnRunActLine(Sender: TPSExec);
 begin
@@ -504,7 +529,7 @@ begin
             if not Assigned(Comp.OnExternalProc) then
               uPSC_dll.RegisterDll_Compiletime(Comp);
             Runtime.AddSpecialProcImport('dll', @IProcessDllImport, nil);
-            Runtime.RegisterFunctionName('UNLOADDLL', @UnloadProc, nil, nil);
+            Runtime.RegisterFunctionName('UNLOADDLL', @UnloadProcInt, nil, nil);
             Runtime.RegisterFunctionName('DLLGETLASTERROR', @GetLastErrorProc, nil, nil);
             for i := 0 to LoadedLibs.Count-1 do
               if TLoadedLib(LoadedLibs[i]).Name=Name then
@@ -862,6 +887,7 @@ begin
   FRuntime:=AValue;
   FRuntimeFree:=False;
 end;
+
 procedure TPascalScript.InternalChDir(Directory: string);
 begin
   chdir(UniToSys(Directory));
@@ -914,24 +940,6 @@ begin
       end;
     end;
   SetCurrentDir(aDir);
-end;
-
-procedure TPascalScript.DoCleanUp;
-var
-  i: Integer;
-  aProc: aProcT2;
-  aLib: TLoadedLib;
-begin
-  for i := 0 to LoadedLibs.Count-1 do
-    begin
-      try
-        aLib := TLoadedLib(LoadedLibs[i]);
-        aProc := aprocT2(dynlibs.GetProcAddress(aLib.Handle,'ScriptCleanup'));
-        if Assigned(aProc) then
-          aProc;
-      except
-      end;
-    end;
 end;
 
 function TPascalScript.AddMethodEx(Slf, Ptr: Pointer; const Decl: tbtstring;
