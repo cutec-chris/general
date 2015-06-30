@@ -100,7 +100,6 @@ type
     procedure SetUpStdFields(AValue: Boolean);
     procedure SetTableCaption(const AValue: string);
     function CreateTable : Boolean;
-    function CheckTable : Boolean;
     function AlterTable : Boolean;
     procedure SetTableName(const AValue: string);
     procedure SetUseIntegrity(AValue: Boolean);
@@ -132,6 +131,8 @@ type
 
   TAbstractDBDataset = class(TComponent)
   private
+    FChanged: Boolean;
+    FDoChange:Integer;
     FDataModule: TComponent;
     FOnChanged: TNotifyEvent;
     FOnRemoved: TNotifyEvent;
@@ -147,15 +148,30 @@ type
     procedure EnableChanges;virtual;
     procedure Change;virtual;
     procedure UnChange;virtual;
+
+    function CheckForInjection(aQuery : string) : Boolean;virtual;
+    procedure DoBeforeDelete;virtual;
+    procedure DoAfterDelete;virtual;
     property UpdateFloatFields : Boolean read FUpdateFloatFields write FUpdateFloatFields;
     property DataModule : TComponent read FDataModule write FDataModule;
     property OnChange : TNotifyEvent read FOnChanged write FOnChanged;
     property OnRemove : TNotifyEvent read FOnRemoved write FOnRemoved;
+    property Changed : Boolean read FChanged;
   end;
 
 implementation
 
 { TAbstractDBDataset }
+
+procedure TAbstractDBDataset.DoBeforeDelete;
+begin
+  if Assigned(Self) and Assigned(Self.OnRemove) then Self.OnRemove(Self);
+end;
+
+procedure TAbstractDBDataset.DoAfterDelete;
+begin
+
+end;
 
 constructor TAbstractDBDataset.Create(AOwner: TComponent);
 begin
@@ -173,18 +189,33 @@ end;
 
 procedure TAbstractDBDataset.DisableChanges;
 begin
+  inc(FDoChange);
 end;
 
 procedure TAbstractDBDataset.EnableChanges;
 begin
+  if FDoChange > 0 then
+    dec(FDoChange);
 end;
 
 procedure TAbstractDBDataset.Change;
 begin
+  if FDoChange > 0 then exit;
+  if fChanged then exit;
+  FChanged := True;
+  if Owner is TAbstractDBDataset then TAbstractDBDataset(Owner).Change;
+  if Assigned(FOnChanged) then
+    FOnChanged(Self);
 end;
 
 procedure TAbstractDBDataset.UnChange;
 begin
+  FChanged:=False;
+end;
+
+function TAbstractDBDataset.CheckForInjection(aQuery: string): Boolean;
+begin
+  Result := False;
 end;
 
 end.
