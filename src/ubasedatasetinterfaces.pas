@@ -128,15 +128,64 @@ type
     function IsChanged : Boolean;
   end;
 
+  { TAbstractDBDataset }
+
   TAbstractDBDataset = class(TComponent)
   private
+    FDataModule: TComponent;
+    FOnChanged: TNotifyEvent;
+    FOnRemoved: TNotifyEvent;
+    FUpdateFloatFields: Boolean;
   public
+    constructor Create(AOwner: TComponent); override;
     procedure DefineFields(aDataSet : TDataSet);virtual;abstract;
     procedure DefineDefaultFields(aDataSet : TDataSet;HasMasterSource : Boolean);virtual;abstract;
     procedure DefineUserFields(aDataSet: TDataSet);virtual;abstract;
+    procedure FillDefaults(aDataSet : TDataSet);virtual;
+    procedure SetDisplayLabels(aDataSet : TDataSet);virtual;
+    procedure DisableChanges;virtual;
+    procedure EnableChanges;virtual;
+    procedure Change;virtual;
+    procedure UnChange;virtual;
+    property UpdateFloatFields : Boolean read FUpdateFloatFields write FUpdateFloatFields;
+    property DataModule : TComponent read FDataModule write FDataModule;
+    property OnChange : TNotifyEvent read FOnChanged write FOnChanged;
+    property OnRemove : TNotifyEvent read FOnRemoved write FOnRemoved;
   end;
 
 implementation
+
+{ TAbstractDBDataset }
+
+constructor TAbstractDBDataset.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FUpdateFloatFields := false;
+end;
+
+procedure TAbstractDBDataset.FillDefaults(aDataSet: TDataSet);
+begin
+end;
+
+procedure TAbstractDBDataset.SetDisplayLabels(aDataSet: TDataSet);
+begin
+end;
+
+procedure TAbstractDBDataset.DisableChanges;
+begin
+end;
+
+procedure TAbstractDBDataset.EnableChanges;
+begin
+end;
+
+procedure TAbstractDBDataset.Change;
+begin
+end;
+
+procedure TAbstractDBDataset.UnChange;
+begin
+end;
 
 end.
 
