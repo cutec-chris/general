@@ -165,7 +165,7 @@ var
 
 implementation
 
-uses httpsend
+uses httpsend,ssl_openssl
   {$ifdef WINDOWS}
   ,Windows
   {$endif}
