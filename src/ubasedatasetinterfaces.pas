@@ -210,7 +210,10 @@ end;
 
 procedure TAbstractDBDataset.UnChange;
 begin
+  if not FChanged then exit;
   FChanged:=False;
+  if Assigned(FOnChanged) then
+    FOnChanged(Self);
 end;
 
 function TAbstractDBDataset.CheckForInjection(aQuery: string): Boolean;
