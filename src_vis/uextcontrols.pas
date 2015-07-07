@@ -719,7 +719,7 @@ var
   i: Integer;
 begin
   for i := 0 to length(FFrameClasses)-1 do
-    if FFrameClasses[i].FrameClass=aFrameClass then exit;
+    if (FFrameClasses[i].FrameClass=aFrameClass) and (aName=FFrameClasses[i].Name) then exit;
   Setlength(FFrameClasses,length(FFrameClasses)+1);
   FMenu.Images := Images;
   with FFrameClasses[length(FFrameClasses)-1] do
