@@ -24,7 +24,7 @@ TFlagFileStream = Class(THandleStream)
   End;
 {$ENDIF}
   
-function DeleteSecure(Filename : string;Method : TSecureDeleteMethod = dmSecure) : Boolean;
+function DeleteSecure(Filename : string;Method : TSecureDeleteMethod = dmOverride) : Boolean;
 function DeleteDirectorySecure(const DirectoryName: string;OnlyChilds: boolean;Method : TSecureDeleteMethod = dmSecure): boolean;
 
 implementation
@@ -166,7 +166,7 @@ begin
       newFilename := '';
       for a := 0 to 15 do
         newFilename := newFilename+chr($30+Random(26));
-      newFilename := ValidateFilename(newFilename);
+      newFilename := ExtractFileDir(aFilename)+DirectorySeparator+ValidateFilename(newFilename);
       if RenameFile(aFilename,newFilename) then
         aFilename := newFilename;
     end;
