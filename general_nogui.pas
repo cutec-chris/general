@@ -9,7 +9,7 @@ interface
 uses
   Utils, uGeneralStrConsts, SecureUtils, umashineid, uModifiedDS, uRTFtoTXT, 
   MathParser, Aspell, usimpleprocess, uSunRise, UtilsDate, uminiconvencoding, 
-  uEncrypt, uBaseDatasetInterfaces, LazarusPackageIntf;
+  uEncrypt, uBaseDatasetInterfaces, pwgenerator, LazarusPackageIntf;
 
 implementation
 

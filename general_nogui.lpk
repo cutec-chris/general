@@ -20,7 +20,7 @@
         </Item1>
       </BuildMacros>
     </CompilerOptions>
-    <Files Count="14">
+    <Files Count="15">
       <Item1>
         <Filename Value="src\Utils.pas"/>
         <UnitName Value="Utils"/>
@@ -77,6 +77,10 @@
         <Filename Value="src\ubasedatasetinterfaces.pas"/>
         <UnitName Value="uBaseDatasetInterfaces"/>
       </Item14>
+      <Item15>
+        <Filename Value="src\pwgenerator.pas"/>
+        <UnitName Value="pwgenerator"/>
+      </Item15>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
