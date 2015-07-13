@@ -698,6 +698,8 @@ begin
       if Assigned(aFrame) then aFrame.Free;
 
     end;
+  if ActivePage=FNewPage then
+    PageIndex:=0;
 end;
 
 function TExtMenuPageControl.GetTab(aFrameClass: TFrameClass): TTabSheet;
