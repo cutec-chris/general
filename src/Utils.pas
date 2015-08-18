@@ -1,7 +1,7 @@
 UNIT Utils;
 INTERFACE
 {$H+}
-uses Classes,SysUtils,uminiconvencoding
+uses Classes,SysUtils,uminiconvencoding,process
      {$IFDEF LCL}
      {$IFNDEF LCLnogui}
      ,Forms,Dialogs,Clipbrd,Translations,LCLProc,Graphics,LResources
@@ -73,10 +73,56 @@ type
     cffPreserveTime
     );
   TCopyFileFlags = set of TCopyFileFlag;
+function IsFileOpen(FileName: string): Boolean;
 function CopyFile(const SrcFilename, DestFilename: string;
                   Flags: TCopyFileFlags=[cffOverwriteFile]): boolean;
 function GetTicks : Int64;
 IMPLEMENTATION
+{$IFDEF WINDOWS}
+function IsFileOpen(FileName: string): Boolean;
+var
+  HFileRes: HFILE;
+begin
+  Result := False;
+  if not FileExists(FileName) then Exit;
+  HFileRes := CreateFile(PChar(FileName),
+                         GENERIC_READ or GENERIC_WRITE,
+                         0,
+                         nil,
+                         OPEN_EXISTING,
+                         FILE_ATTRIBUTE_NORMAL,
+                         0);
+  Result := (HFileRes = INVALID_HANDLE_VALUE);
+  if not Result then
+    CloseHandle(HFileRes);
+end;{$ELSE}
+function IsFileOpen(FileName: string): Boolean;
+var
+  atmp: TStringList;
+begin
+  result:=false;
+  atmp := TStringList.Create;
+  with TProcess.Create(nil) do try
+    try
+      // see: http://wiki.lazarus.freepascal.org/Executing_External_Programs
+      CommandLine := 'lsof "'+FileName+'"';  // deprecated but ok
+      // wait until command done, record output
+      Options := Options + [poWaitOnExit, poUsePipes];
+      Execute;
+      atmp.LoadFromStream(Output);
+    except
+      FreeAndNil(atmp);
+    end
+  finally
+    Free;
+  end;
+  if Assigned(atmp) then Result := atmp.Count>1
+  else
+    begin
+    end;
+  FreeAndNil(atmp);
+end;
+{$ENDIF}
 function GetMimeTypeforExtension(Extension : string) : string;
 var
 {$ifdef MSWINDOWS}

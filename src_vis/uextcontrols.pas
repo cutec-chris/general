@@ -156,8 +156,10 @@ type
     property TabCaption : string read FTabCaption write SetTabCaption;
     procedure ShowFrame;virtual;
     procedure FrameAdded;virtual;
+    procedure DefineMenuEntrys;virtual;abstract;
     procedure DoRefresh;virtual;
   end;
+  TExtControlFrameClass=class of TExtControlFrame;
 
   { TExtMenuPageControl }
 
