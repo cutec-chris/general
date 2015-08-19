@@ -146,6 +146,9 @@ type
     AddFunction : TNotifyEvent;
     MultiblePages : Boolean;
   end;
+
+  { TExtControlFrame }
+
   TExtControlFrame = class(TFrame)
   private
     FTabCaption: string;
@@ -157,7 +160,7 @@ type
     procedure ShowFrame;virtual;
     procedure FrameAdded;virtual;
     procedure DefineMenuEntrys;virtual;abstract;
-    procedure DoRefresh;virtual;
+    procedure DoRefresh(ForceRefresh : Boolean = False);virtual;
   end;
   TExtControlFrameClass=class of TExtControlFrame;
 
@@ -379,7 +382,7 @@ begin
 
 end;
 
-procedure TExtControlFrame.DoRefresh;
+procedure TExtControlFrame.DoRefresh(ForceRefresh: Boolean);
 begin
 end;
 procedure TExtMenuPageControl.FFrameClassesMenuItemClick(Sender: TObject);
