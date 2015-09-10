@@ -12,7 +12,7 @@ uses
   ;
   
 type
-  TSecureDeleteMethod = (dmDoD522022,dmOverride,dmSecure);
+  TSecureDeleteMethod = (dmDoD522022,dmOverride,dmSecure,dmNone);
   
 {$IFDEF WINDOWS}
 { TFlagFileStream }
@@ -25,7 +25,7 @@ TFlagFileStream = Class(THandleStream)
 {$ENDIF}
   
 function DeleteSecure(Filename : string;Method : TSecureDeleteMethod = dmOverride) : Boolean;
-function DeleteDirectorySecure(const DirectoryName: string;OnlyChilds: boolean;Method : TSecureDeleteMethod = dmSecure): boolean;
+function DeleteDirectorySecure(const DirectoryName: string;OnlyChilds: boolean;Method : TSecureDeleteMethod = dmNone): boolean;
 
 implementation
 
@@ -166,7 +166,7 @@ begin
       newFilename := '';
       for a := 0 to 15 do
         newFilename := newFilename+chr($30+Random(26));
-      newFilename := ExtractFileDir(aFilename)+DirectorySeparator+ValidateFilename(newFilename);
+      newFilename := AppendPathDelim(ExtractFileDir(aFilename))+ValidateFilename(newFilename);
       if RenameFile(aFilename,newFilename) then
         aFilename := newFilename;
     end;
