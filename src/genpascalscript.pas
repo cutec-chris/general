@@ -986,6 +986,7 @@ begin
   Result:= Compiler.Compile(Source) and Compiler.GetOutput(FBytecode);
   for i := 0 to Compiler.MsgCount-1 do
     CompleteOutput:=CompleteOutput+Compiler.Msg[i].MessageToString+LineEnding;
+  Runtime.Clear;
   Result:= Result and FRuntime.LoadData(Bytecode);
 end;
 constructor TPascalScript.Create;
