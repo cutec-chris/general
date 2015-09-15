@@ -84,8 +84,8 @@ var
   HFileRes: HFILE;
 begin
   Result := False;
-  if not FileExists(FileName) then Exit;
-  HFileRes := CreateFile(PChar(FileName),
+  if not FileExists(UniToSys(FileName)) then Exit;
+  HFileRes := CreateFile(PChar(UniToSys(FileName)),
                          GENERIC_READ or GENERIC_WRITE,
                          0,
                          nil,
@@ -105,7 +105,7 @@ begin
   with TProcess.Create(nil) do try
     try
       // see: http://wiki.lazarus.freepascal.org/Executing_External_Programs
-      CommandLine := 'lsof "'+FileName+'"';  // deprecated but ok
+      CommandLine := 'lsof "'+UniToSys(FileName)+'"';  // deprecated but ok
       // wait until command done, record output
       Options := Options + [poWaitOnExit, poUsePipes];
       Execute;

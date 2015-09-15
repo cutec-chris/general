@@ -170,7 +170,8 @@ begin
       if RenameFile(aFilename,newFilename) then
         aFilename := newFilename;
     end;
-  SysUtils.DeleteFile(aFilename);
+  if Method=dmNone then Result := SysUtils.DeleteFile(aFilename)
+  else SysUtils.DeleteFile(aFilename);
 end;
 
 {$IFDEF WINDOWS}
