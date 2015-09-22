@@ -82,7 +82,7 @@ type
     Name : string;
   end;
 
-  TPascalOnUses = function(Sender: TPascalScript; const Name: tbtString): Boolean of object;
+  TPascalOnUses = function(Sender: TPascalScript; const Name: tbtString;OnlyAdditional : Boolean): Boolean of object;
 
   { TPascalScript }
 
@@ -621,7 +621,7 @@ begin
     end;
   end;
   if Assigned(FOnUses) then
-    Result := FOnUses(Self,Name) or Result;
+    Result := FOnUses(Self,Name,True) or Result;
 end;
 function ExtendICompiler(Sender: TPSPascalCompiler; const Name: tbtString
   ): Boolean;
