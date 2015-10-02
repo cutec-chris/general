@@ -393,6 +393,20 @@ var
   tmp3: String;
   bLib: TLoadedLib;
   FLibCompiled: Boolean = false;
+
+  function FindLib(aPath,aName : string) : string;
+  begin
+    Result := '';
+    if FileExists(UniToSys(aPath+lowercase(aName)+'.dll')) then
+      Result := aPath+lowercase(aName)+'.dll';
+    if FileExists(aPath+lowercase(aName)+'.so') then
+      Result := aPath+lowercase(aName)+'.so';
+    if FileExists(aPath+'lib'+lowercase(aName)+'.so') then
+      Result := aPath+'lib'+lowercase(aName)+'.so';
+    if FileExists(aPath+lowercase(aName)+'.dylib') then
+      Result := aPath+lowercase(aName)+'.dylib';
+  end;
+
 begin
   Result := True;
   try
@@ -516,14 +530,11 @@ begin
     else
       begin
         Result := False;
-        if FileExists(ExtractFilePath(ParamStr(0))+lowercase(Name)+'.dll') then
-          aLibName := ExtractFilePath(ParamStr(0))+lowercase(Name)+'.dll';
-        if FileExists(ExtractFilePath(ParamStr(0))+lowercase(Name)+'.so') then
-          aLibName := ExtractFilePath(ParamStr(0))+lowercase(Name)+'.so';
-        if FileExists(ExtractFilePath(ParamStr(0))+'lib'+lowercase(Name)+'.so') then
-          aLibName := ExtractFilePath(ParamStr(0))+'lib'+lowercase(Name)+'.so';
-        if FileExists(ExtractFilePath(ParamStr(0))+lowercase(Name)+'.dylib') then
-          aLibName := ExtractFilePath(ParamStr(0))+lowercase(Name)+'.dylib';
+        aLibName := FindLib(ExtractFilePath(ParamStr(0)),Name);
+        if aLibName='' then
+          aLibName := FindLib(ExtractFilePath(ParamStr(0))+'scriptplugins'+DirectorySeparator,Name);
+        if aLibName='' then
+          aLibName := FindLib(ExtractFilePath(ParamStr(0))+'..'+DirectorySeparator+'scriptplugins'+DirectorySeparator,Name);
         if FileExists(aLibname) then
           begin
             if not Assigned(Comp.OnExternalProc) then
@@ -535,8 +546,7 @@ begin
               if TLoadedLib(LoadedLibs[i]).Name=Name then
                 begin
                   bLib := TLoadedLib(LoadedLibs[i]);
-                  Comp.Compile(bLib.Code);
-                  Result := True;
+                  Result := Comp.Compile(bLib.Code);
                   exit;
                 end;
             aLib := LoadLibrary(PChar(aLibName));
@@ -572,7 +582,7 @@ begin
                             tmp2 := copy(tmp2,0,pos(';',tmp2)-1);
                             if tmp2<>'' then
                               tmp2 := ' '+tmp2;
-                            tmp := '  '+tmp1+'external '''+tmp+'@'+ExtractFileName(aLibname)+tmp2+''';';
+                            tmp := '  '+tmp1+'external '''+tmp+'@'+aLibname+tmp2+''';';
                           end
                         else tmp := '  '+sProc;
                         newUnit := newUnit+LineEnding+tmp;
@@ -594,10 +604,9 @@ begin
                         sProc := aProc();
                         NewLib := TLoadedLib.Create;
                         NewLib.Name:=Name;
-                        NewLib.Code:=sProc;
+                        NewLib.Code:=StringReplace(sProc,'%dllpath%',aLibName,[rfReplaceAll]);
                         LoadedLibs.Add(NewLib);
-                        Comp.Compile(sProc);
-                        Result := True;
+                        Result := Comp.Compile(sProc);
                       end;
                   end;
                 aProc := aprocT(dynlibs.GetProcAddress(aLib,'ScriptTool'));
