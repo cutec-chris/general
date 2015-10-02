@@ -20,7 +20,7 @@ unit Bcrypt;
 interface
 
 uses
-    Blowfish, Types, Math, ComObj;
+    Blowfishbc, Types, Math, ComObj;
 
 type
     UnicodeString = WideString;
@@ -317,10 +317,10 @@ begin
             k := 0;
             for i := 0 to 17 do
             begin
-                    A :=      KeyB[(k+3) mod Len];
-                    A := A + (KeyB[(k+2) mod Len] shl 8);
-                    A := A + (KeyB[(k+1) mod Len] shl 16);
-                    A := A + (KeyB[k]             shl 24);
+                    A :=      KeyB^[(k+3) mod Len];
+                    A := A + (KeyB^[(k+2) mod Len] shl 8);
+                    A := A + (KeyB^[(k+1) mod Len] shl 16);
+                    A := A + (KeyB^[k]             shl 24);
                     State.PBoxM[i] := State.PBoxM[i] xor A;
                     k := (k+4) mod Len;
             end;

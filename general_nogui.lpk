@@ -20,7 +20,7 @@
         </Item1>
       </BuildMacros>
     </CompilerOptions>
-    <Files Count="15">
+    <Files Count="17">
       <Item1>
         <Filename Value="src\Utils.pas"/>
         <UnitName Value="Utils"/>
@@ -81,6 +81,14 @@
         <Filename Value="src\pwgenerator.pas"/>
         <UnitName Value="pwgenerator"/>
       </Item15>
+      <Item16>
+        <Filename Value="src\bcrypt.pas"/>
+        <UnitName Value="Bcrypt"/>
+      </Item16>
+      <Item17>
+        <Filename Value="src\blowfishbc.pas"/>
+        <UnitName Value="blowfishbc"/>
+      </Item17>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
