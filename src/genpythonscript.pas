@@ -16,7 +16,6 @@ type
   protected
     function GetTyp: string; override;
   public
-    constructor Create;
     procedure Init; override;
     function Execute(aParameters: Variant): Boolean; override;
     destructor Destroy; override;
@@ -41,6 +40,7 @@ begin
   fIO := TPythonInputOutput.Create(nil);
   fIO.OnReceiveData:=@fIOReceiveData;
   fEngine.IO := fIO;
+  fEngine.Initialize;
 end;
 
 function TPythonScript.Execute(aParameters: Variant): Boolean;
