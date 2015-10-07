@@ -493,6 +493,7 @@ function SysToUni(const s: string): string;
 var
   i: Integer;
   a: Integer;
+  s1 : PChar;
 begin
   if (NeedRTLAnsi and (not IsASCII(s))) then
   begin
@@ -507,7 +508,9 @@ begin
   end
   else
     Result:=s;
-  UTF8FixBroken(Result);
+  s1 := PChar(Result);
+  UTF8FixBroken(s1);
+  Result := s1;
 end;
 
 function AppendPathDelim(const Path: string): string;
