@@ -103,8 +103,9 @@ type
     function InternalFormat(Fmt: string; Args: array of const): string;
 
     function InternalMathParse(Input: string): string;
+    function GetTyp: string; override;
   public
-    function InternalUses(Comp : TPSPascalCompiler;Name : string) : Boolean;
+    function InternalUses(Comp : TPSPascalCompiler;Name : string) : Boolean;virtual;
     function Execute(aParameters: Variant): Boolean; override;
     property Runtime : TPSExec read FRuntime write SetRuntime;
     property ClassImporter : TPSRuntimeClassImporter read FClassImporter write SetClassImporter;
@@ -816,6 +817,11 @@ begin
       Result := e.message;
   end;
   aParser.Free;
+end;
+
+function TPascalScript.GetTyp: string;
+begin
+  Result := 'Pascal';
 end;
 
 procedure TPascalScript.SetCompiler(AValue: TPSPascalCompiler);
