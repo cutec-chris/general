@@ -20,7 +20,7 @@
         </Item1>
       </BuildMacros>
     </CompilerOptions>
-    <Files Count="15">
+    <Files Count="16">
       <Item1>
         <Filename Value="src\Utils.pas"/>
         <UnitName Value="Utils"/>
@@ -81,6 +81,10 @@
         <Filename Value="src\pwgenerator.pas"/>
         <UnitName Value="pwgenerator"/>
       </Item15>
+      <Item16>
+        <Filename Value="src\genscript.pas"/>
+        <UnitName Value="genscript"/>
+      </Item16>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
