@@ -45,7 +45,13 @@ end;
 
 function TPythonScript.Execute(aParameters: Variant): Boolean;
 begin
-  fEngine.ExecString(Source);
+  try
+    fEngine.ExecString(Source)
+  except
+    on e : Exception do
+      if Assigned(Writeln) then
+        Writeln(e.Message);
+  end;
 end;
 
 destructor TPythonScript.Destroy;
