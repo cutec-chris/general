@@ -46,6 +46,7 @@ type
   public
     Parameters : Variant;
     function Execute(aParameters : Variant) : Boolean;virtual;
+    procedure Init;virtual;
     property Source : string read FSource write FSource;
     property Status : char read FStatus write SetStatus;
     property Results : string read FResults write FResults;
@@ -101,6 +102,10 @@ end;
 function TScript.Execute(aParameters: Variant): Boolean;
 begin
   Parameters:=aParameters;
+end;
+
+procedure TScript.Init;
+begin
 end;
 
 end.
