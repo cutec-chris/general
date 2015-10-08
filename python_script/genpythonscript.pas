@@ -52,13 +52,14 @@ begin
   fIO.OnSendData:=@fIOSendData;
   fEngine.IO := fIO;
   fEngine.RedirectIO:=True;
-  fEngine.Initialize;
 end;
 
 function TPythonScript.Execute(aParameters: Variant): Boolean;
 begin
   Result := False;
   try
+    fEngine.Finalize;
+    fEngine.Initialize;
     fEngine.ExecString(Source);
     Result := True;
   except
