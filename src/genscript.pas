@@ -27,6 +27,9 @@ uses
   Classes, SysUtils, Variants, Utils;
 
 type
+
+  { TScript }
+
   TScript = class
   private
     FResults: string;
@@ -43,11 +46,12 @@ type
     procedure InternalWrite(const s: string);
     procedure InternalWriteln(const s: string);
     procedure InternalReadln(var s: string);
+    procedure SetSource(AValue: string);virtual;
   public
     Parameters : Variant;
     function Execute(aParameters : Variant) : Boolean;virtual;
     procedure Init;virtual;
-    property Source : string read FSource write FSource;
+    property Source : string read FSource write SetSource;
     property Status : char read FStatus write SetStatus;
     property Results : string read FResults write FResults;
     property Write : TStrOutFunc read FWriFunc write FWriFunc;
@@ -64,6 +68,8 @@ type
   TByteCodeScript = class(TScript)
   private
     FByteCode: string;
+  protected
+    procedure SetSource(AValue: string); override;
   public
     property ByteCode : string read FByteCode write FByteCode;
     function Compile : Boolean;virtual;abstract;
@@ -71,6 +77,12 @@ type
   end;
 
 implementation
+
+procedure TByteCodeScript.SetSource(AValue: string);
+begin
+  inherited SetSource(AValue);
+  ByteCode:='';
+end;
 
 constructor TByteCodeScript.Create;
 begin
@@ -82,6 +94,12 @@ begin
   FStatus:=AValue;
   if Assigned(FStatusChanged) then
     FStatusChanged(Self);
+end;
+
+procedure TScript.SetSource(AValue: string);
+begin
+  if FSource=AValue then Exit;
+  FSource:=AValue;
 end;
 
 procedure TScript.InternalWrite(const s: string);
