@@ -2,12 +2,12 @@
   This source is only used to compile and install the package.
  }
 
-unit general_pascal_script;
+unit general_lua_script;
 
 interface
 
 uses
-  genpascalscript, gencscript;
+  genluascript, lua53;
 
 implementation
 

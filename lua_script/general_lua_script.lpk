@@ -2,7 +2,7 @@
 <CONFIG>
   <Package Version="4">
     <PathDelim Value="\"/>
-    <Name Value="general_pascal_script"/>
+    <Name Value="general_lua_script"/>
     <CompilerOptions>
       <Version Value="11"/>
       <PathDelim Value="\"/>
@@ -14,15 +14,15 @@
     </CompilerOptions>
     <Files Count="2">
       <Item1>
-        <Filename Value="genpascalscript.pas"/>
-        <UnitName Value="genpascalscript"/>
+        <Filename Value="genluascript.pas"/>
+        <UnitName Value="genluascript"/>
       </Item1>
       <Item2>
-        <Filename Value="gencscript.pas"/>
-        <UnitName Value="gencscript"/>
+        <Filename Value="lua53.pas"/>
+        <UnitName Value="lua53"/>
       </Item2>
     </Files>
-    <RequiredPkgs Count="4">
+    <RequiredPkgs Count="3">
       <Item1>
         <PackageName Value="general_nogui"/>
       </Item1>
@@ -31,12 +31,8 @@
         <DefaultFilename Value="..\..\promet\source\components\synapse\laz_synapse.lpk"/>
       </Item2>
       <Item3>
-        <PackageName Value="ppascalscriptfcl"/>
-        <DefaultFilename Value="..\..\promet\source\components\pascalscript\ppascalscriptfcl.lpk"/>
-      </Item3>
-      <Item4>
         <PackageName Value="FCL"/>
-      </Item4>
+      </Item3>
     </RequiredPkgs>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir)"/>
