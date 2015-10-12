@@ -21,7 +21,7 @@ type
     function GetTyp: string; override;
   public
     procedure Init; override;
-    function Execute(aParameters: Variant): Boolean; override;
+    function Execute(aParameters: Variant;Debug : Boolean = false): Boolean; override;
     destructor Destroy; override;
   end;
 
@@ -55,7 +55,7 @@ begin
   fEngine.Initialize;
 end;
 
-function TPythonScript.Execute(aParameters: Variant): Boolean;
+function TPythonScript.Execute(aParameters: Variant; Debug: Boolean): Boolean;
 begin
   Result := False;
   try

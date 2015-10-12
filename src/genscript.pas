@@ -27,14 +27,17 @@ uses
   Classes, SysUtils, Variants, Utils;
 
 type
-
+  TScript = class;
+  TLineEvent = procedure(Sender : TScript;Module : string;Position,Row,Col : Integer) of object;
+  TScriptStatus = (ssNone,ssRunning,ssPaused);
   { TScript }
 
   TScript = class
   private
+    FIdle: TNotifyEvent;
     FResults: string;
     FRlFunc: TStrInFunc;
-    FRunLine: TNotifyEvent;
+    FRunLine: TLineEvent;
     FSource: string;
     FStatus: char;
     FStatusChanged: TNotifyEvent;
@@ -47,19 +50,27 @@ type
     procedure InternalWriteln(const s: string);
     procedure InternalReadln(var s: string);
     procedure SetSource(AValue: string);virtual;
+    function GetStatus: TScriptStatus;virtual;
   public
     Parameters : Variant;
-    function Execute(aParameters : Variant) : Boolean;virtual;
+    function Execute(aParameters : Variant;Debug : Boolean = false) : Boolean;virtual;
     procedure Init;virtual;
     property Source : string read FSource write SetSource;
-    property Status : char read FStatus write SetStatus;
+    property Status : TScriptStatus read GetStatus;
     property Results : string read FResults write FResults;
     property Write : TStrOutFunc read FWriFunc write FWriFunc;
     property Writeln : TStrOutFunc read FWrFunc write FWRFunc;
     property Readln : TStrInFunc read FRlFunc write FRlFunc;
     property Typ : string read GetTyp;
+    function StepInto : Boolean;virtual;
+    function StepOver : Boolean;virtual;
+    function Pause : Boolean;virtual;
+    function Resume : Boolean;virtual;
+    function Stop : Boolean;virtual;
+    function IsRunning : Boolean;virtual;
     property OnStatusChanged : TNotifyEvent read FStatusChanged write FStatusChanged;
-    property OnRunLine : TNotifyEvent read FRunLine write FRunLine;
+    property OnRunLine : TLineEvent read FRunLine write FRunLine;
+    property OnIdle : TNotifyEvent read FIdle write FIdle;
   end;
   TScriptClass = class of TScript;
 
@@ -96,6 +107,11 @@ begin
     FStatusChanged(Self);
 end;
 
+function TScript.GetStatus: TScriptStatus;
+begin
+  Result := ssNone;
+end;
+
 procedure TScript.SetSource(AValue: string);
 begin
   if FSource=AValue then Exit;
@@ -117,13 +133,43 @@ begin
   if Assigned(FRlFunc) then FRlFunc(s);
 end;
 
-function TScript.Execute(aParameters: Variant): Boolean;
+function TScript.Execute(aParameters: Variant; Debug: Boolean): Boolean;
 begin
   Parameters:=aParameters;
 end;
 
 procedure TScript.Init;
 begin
+end;
+
+function TScript.StepInto: Boolean;
+begin
+  Result := False;
+end;
+
+function TScript.StepOver: Boolean;
+begin
+  Result := False;
+end;
+
+function TScript.Pause: Boolean;
+begin
+  Result := False;
+end;
+
+function TScript.Resume: Boolean;
+begin
+  Result := False;
+end;
+
+function TScript.Stop: Boolean;
+begin
+  Result := False;
+end;
+
+function TScript.IsRunning: Boolean;
+begin
+  Result := False;
 end;
 
 end.

@@ -52,6 +52,13 @@ type
     Name : string;
   end;
 
+  TIPSPascalCompiler = class(TPSPascalCompiler)
+  private
+    FObj: TObject;
+  public
+    property Obj : TObject read FObj write FObj;
+  end;
+
   TPascalOnUses = function(Sender: TPascalScript; const Name: tbtString; OnlyAdditional : Boolean): Boolean of object;
 
   { TPascalScript }
@@ -64,7 +71,7 @@ type
     FProcess: TProcess;
     FRuntime : TPSExec;
     FRuntimeFree: Boolean;
-    FCompiler: TPSPascalCompiler;
+    FCompiler: TIPSPascalCompiler;
     FCompilerFree: Boolean;
     FClassImporter: TPSRuntimeClassImporter;
     FToolRegistered: TStrOutFunc;
@@ -73,7 +80,7 @@ type
     function InternalFindFirst(const FileName: String; var FindRec: TInternalFindRec): Boolean;
     function InternalFindNext(var FindRec: TInternalFindRec): Boolean;
     procedure SetClassImporter(AValue: TPSRuntimeClassImporter);
-    procedure SetCompiler(AValue: TPSPascalCompiler);
+    procedure SetCompiler(AValue: TIPSPascalCompiler);
     procedure SetRuntime(AValue: TPSExec);
   protected
     procedure InternalChDir(Directory : string);
@@ -104,12 +111,14 @@ type
 
     function InternalMathParse(Input: string): string;
     function GetTyp: string; override;
+    function GetStatus: TScriptStatus; override;
   public
+    procedure Init; override;
     function InternalUses(Comp : TPSPascalCompiler;Name : string) : Boolean;virtual;
-    function Execute(aParameters: Variant): Boolean; override;
+    function Execute(aParameters: Variant;Debug : Boolean = false): Boolean; override;
     property Runtime : TPSExec read FRuntime write SetRuntime;
     property ClassImporter : TPSRuntimeClassImporter read FClassImporter write SetClassImporter;
-    property Compiler : TPSPascalCompiler read FCompiler write SetCompiler;
+    property Compiler : TIPSPascalCompiler read FCompiler write SetCompiler;
     function AddMethodEx(Slf, Ptr: Pointer; const Decl: tbtstring; CallingConv: uPSRuntime.TPSCallingConvention): Boolean;
     function AddMethod(Slf, Ptr: Pointer; const Decl: tbtstring): Boolean;
     function AddFunction(Ptr: Pointer; const Decl: tbtstring): Boolean;
@@ -118,6 +127,11 @@ type
     property OnUses : TPascalOnUses read FOnUses write FOnUses;
     function Compile: Boolean; override;
     property Output : string read CompleteOutput;
+    function Stop: Boolean; override;
+    function StepInto: Boolean; override;
+    function StepOver: Boolean; override;
+    function Resume: Boolean; override;
+    function Pause: Boolean; override;
     constructor Create;override;
     destructor Destroy; override;
     property OnExecuteStep : TNotifyEvent read FExecStep write FExecStep;
@@ -311,7 +325,20 @@ end;
 procedure OnRunActLine(Sender: TPSExec);
 begin
   if Assigned(ActRuntime) and Assigned(ActRuntime.OnRunLine) then
-    ActRuntime.OnRunLine(ActRuntime);
+    ActRuntime.OnRunLine(ActRuntime,Sender.UnitName,-1,-1,-1);
+end;
+
+procedure OnSourceLine(Sender: TPSDebugExec; const Name: tbtstring; Position,
+  Row, Col: Cardinal);
+begin
+  if Assigned(ActRuntime) and Assigned(ActRuntime.OnRunLine) then
+    ActRuntime.OnRunLine(ActRuntime,Name,Position,Row,Col);
+end;
+
+procedure IdleCall(Sender: TPSDebugExec);
+begin
+  if Assigned(ActRuntime) and Assigned(ActRuntime.OnIdle) then
+    ActRuntime.OnIdle(ActRuntime);
 end;
 
 function TPascalScript.InternalFindFirst(const FileName: String; var FindRec: TInternalFindRec): Boolean;
@@ -606,7 +633,7 @@ end;
 function ExtendICompiler(Sender: TPSPascalCompiler; const Name: tbtString
   ): Boolean;
 begin
-  Result := TPascalScript(Sender.Obj).InternalUses(Sender,Name);
+  Result := TPascalScript(TIPSPascalCompiler(Sender).Obj).InternalUses(Sender,Name);
 end;
 constructor TLoadedLib.Create;
 begin
@@ -824,7 +851,40 @@ begin
   Result := 'Pascal';
 end;
 
-procedure TPascalScript.SetCompiler(AValue: TPSPascalCompiler);
+function TPascalScript.GetStatus: TScriptStatus;
+begin
+  Result := ssNone;
+  if Assigned(FRuntime) then
+    begin
+      if FRuntime is TPSDebugExec then
+        begin
+          case FRuntime.Status of
+          TPSStatus.isRunning:Result := ssRunning;
+          isPaused:Result:=ssPaused;
+          end;
+        end
+      else
+        begin
+          case TPSDebugExec(FRuntime).DebugMode of
+          dmPaused,dmStepInto,dmStepOver:Result := ssPaused;
+          dmRun:Result:=ssRunning;
+          end;
+        end;
+    end;
+end;
+
+procedure TPascalScript.Init;
+begin
+  FProcess := TProcess.Create(nil);
+  FProcess.ShowWindow:=swoNone;
+  FCompiler:= TIPSPascalCompiler.Create;
+  FCompilerFree:=True;
+  FRuntime:= TPSExec.Create;
+  FRuntimeFree := True;
+  FClassImporter:= TPSRuntimeClassImporter.CreateAndRegister(FRuntime, false);
+end;
+
+procedure TPascalScript.SetCompiler(AValue: TIPSPascalCompiler);
 begin
   if FCompiler=AValue then Exit;
   try
@@ -866,12 +926,25 @@ begin
   Result := DirectoryExists(UniToSys(Directory));
 end;
 
-function TPascalScript.Execute(aParameters: Variant): Boolean;
+function TPascalScript.Execute(aParameters: Variant; Debug: Boolean): Boolean;
 var
   i: Integer;
   aDir: String;
   aProc: aProcT2;
 begin
+  if Debug and (not (Runtime is TPSDebugExec)) then
+    begin
+      FreeAndNil(FRuntime);
+      FRuntime:=TPSDebugExec.Create;
+      FreeAndNil(FClassImporter);
+      FClassImporter:= TPSRuntimeClassImporter.CreateAndRegister(FRuntime, false);
+      (FRuntime as TPSDebugExec).OnSourceLine:=@OnSourceLine;
+      (FRuntime as TPSDebugExec).OnIdleCall:=@IdleCall;
+      (FRuntime as TPSDebugExec).DebugEnabled:=True;
+      ByteCode:='';
+    end
+  else if (not (Runtime is TPSDebugExec)) then
+    FRuntime.OnRunLine:=@OnRunActLine;
   aDir := GetCurrentDir;
   SetCurrentDir(GetHomeDir);
   Parameters:=aParameters;
@@ -887,7 +960,6 @@ begin
     begin
       try
         ActRuntime := Self;
-        FRuntime.OnRunLine:=@OnRunActLine;
         Result := FRuntime.RunScript
               and (FRuntime.ExceptionCode = erNoError);
         if not Result then
@@ -943,7 +1015,10 @@ function TPascalScript.Compile: Boolean;
 var
   i: Integer;
   aBytecode: tbtString;
+  aDebugData: tbtString;
 begin
+  Result := False;
+  if not Assigned(Compiler) then exit;
   CompleteOutput:='';
   Compiler.Obj := Self;
   Compiler.OnUses:= @ExtendICompiler;
@@ -953,18 +1028,73 @@ begin
     CompleteOutput:=CompleteOutput+Compiler.Msg[i].MessageToString+LineEnding;
   Runtime.Clear;
   Result:= Result and FRuntime.LoadData(Bytecode);
+  if FRuntime is TPSDebugExec then
+    begin
+      Compiler.GetDebugOutput(aDebugData);
+      TPSDebugExec(FRuntime).LoadDebugData(aDebugData);
+    end;
 end;
+
+function TPascalScript.Stop: Boolean;
+begin
+  Result:=False;
+  if Assigned(FRuntime) then
+    begin
+      FRuntime.Stop;
+      Result := True;
+    end;
+end;
+
+function TPascalScript.StepInto: Boolean;
+begin
+  Result:=False;
+  if Assigned(FRuntime) and (FRuntime is TPSDebugExec) then
+    begin
+      TPSDebugExec(FRuntime).StepInto;
+      Result := True;
+    end;
+end;
+
+function TPascalScript.StepOver: Boolean;
+begin
+  Result:=False;
+  if Assigned(FRuntime) and (FRuntime is TPSDebugExec) then
+    begin
+      TPSDebugExec(FRuntime).StepOver;
+      Result := True;
+    end;
+end;
+
+function TPascalScript.Resume: Boolean;
+begin
+  Result:=False;
+  if Assigned(FRuntime) and (FRuntime is TPSDebugExec) then
+    begin
+      TPSDebugExec(FRuntime).Run;
+      Result := True;
+    end
+  else if Assigned(FRuntime) then
+    begin
+      FRuntime.RunScript;
+      Result := True;
+    end;
+end;
+
+function TPascalScript.Pause: Boolean;
+begin
+  Result:=False;
+  if Assigned(FRuntime) then
+    begin
+      FRuntime.Pause;
+      Result := True;
+    end;
+end;
+
 constructor TPascalScript.Create;
 begin
-  inherited;
-  FProcess := TProcess.Create(nil);
-  FProcess.ShowWindow:=swoNone;
-  FCompiler:= TPSPascalCompiler.Create;
-  FCompilerFree:=True;
-  FRuntime:= TPSExec.Create;
-  FRuntimeFree := True;
-  FClassImporter:= TPSRuntimeClassImporter.CreateAndRegister(FRuntime, false);
+  inherited Create;
 end;
+
 destructor TPascalScript.Destroy;
 begin
   if Assigned(FProcess) then
