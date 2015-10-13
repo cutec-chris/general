@@ -132,6 +132,7 @@ type
     function StepOver: Boolean; override;
     function Resume: Boolean; override;
     function Pause: Boolean; override;
+    function IsRunning: Boolean; override;
     constructor Create;override;
     destructor Destroy; override;
     property OnExecuteStep : TNotifyEvent read FExecStep write FExecStep;
@@ -856,7 +857,7 @@ begin
   Result := ssNone;
   if Assigned(FRuntime) then
     begin
-      if FRuntime is TPSDebugExec then
+      if (not(FRuntime is TPSDebugExec)) then
         begin
           case FRuntime.Status of
           TPSStatus.isRunning:Result := ssRunning;
@@ -867,7 +868,10 @@ begin
         begin
           case TPSDebugExec(FRuntime).DebugMode of
           dmPaused,dmStepInto,dmStepOver:Result := ssPaused;
-          dmRun:Result:=ssRunning;
+          dmRun:
+            begin
+              if FRuntime.Status=TPSStatus.isRunning then Result:=ssRunning;
+            end;
           end;
         end;
     end;
@@ -1088,6 +1092,11 @@ begin
       FRuntime.Pause;
       Result := True;
     end;
+end;
+
+function TPascalScript.IsRunning: Boolean;
+begin
+  Result:=(Status=ssRunning) or (Status=ssPaused);
 end;
 
 constructor TPascalScript.Create;
