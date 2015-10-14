@@ -12,7 +12,7 @@
         <UnitOutputDirectory Value="lib\pascal\$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
     </CompilerOptions>
-    <Files Count="2">
+    <Files Count="3">
       <Item1>
         <Filename Value="genpascalscript.pas"/>
         <UnitName Value="genpascalscript"/>
@@ -21,6 +21,10 @@
         <Filename Value="gencscript.pas"/>
         <UnitName Value="gencscript"/>
       </Item2>
+      <Item3>
+        <Filename Value="uccompiler.pas"/>
+        <UnitName Value="uccompiler"/>
+      </Item3>
     </Files>
     <RequiredPkgs Count="4">
       <Item1>

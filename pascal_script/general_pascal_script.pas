@@ -7,7 +7,7 @@ unit general_pascal_script;
 interface
 
 uses
-  genpascalscript, gencscript;
+  genpascalscript, gencscript, uccompiler;
 
 implementation
 
