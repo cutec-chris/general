@@ -24,7 +24,7 @@ unit gencscript;
 interface
 
 uses
-  Classes, SysUtils, genpascalscript, uCCompiler;
+  Classes, SysUtils, genpascalscript, uCCompiler, process, uPSRuntime;
 
 type
 
@@ -34,7 +34,7 @@ type
   protected
     function GetTyp: string; override;
   public
-    function Compile: Boolean; override;
+    procedure Init; override;
   end;
 
 implementation
@@ -44,9 +44,13 @@ begin
   Result:='C';
 end;
 
-function TCScript.Compile: Boolean;
+procedure TCScript.Init;
 begin
-
+  Process := TProcess.Create(nil);
+  Process.ShowWindow:=swoNone;
+  Compiler:= TPSOCCompiler.Create;
+  Runtime:= TPSExec.Create;
+  ClassImporter:= TPSRuntimeClassImporter.CreateAndRegister(Runtime, false);
 end;
 
 end.

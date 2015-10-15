@@ -24,7 +24,7 @@ unit uccompiler;
 interface
 
 uses
-  Classes, SysUtils, uPSCompiler, uPSUtils;
+  Classes, SysUtils, uPSCompiler, uPSUtils,genpascalscript;
 
 type
   TOnNotifyEvent = function(Sender : TObject) : Boolean of object;
@@ -59,7 +59,7 @@ type
 
   { TPSOCCompiler }
 
-  TPSOCCompiler = class(TPSPascalCompiler)
+  TPSOCCompiler = class(TIPSPascalCompiler)
     procedure ParserError(Parser: TObject; Kind: TPSParserErrorKind);
   private
     FOutput: String;
@@ -844,6 +844,78 @@ begin
   end;
 end;
 
+procedure CopyVariantContents(Src, Dest: PIfRVariant);
+begin
+  case src.FType.BaseType of
+    btu8, bts8: dest^.tu8 := src^.tu8;
+    btu16, bts16: dest^.tu16 := src^.tu16;
+    btenum, btu32, bts32: dest^.tu32 := src^.tu32;
+    btsingle: Dest^.tsingle := src^.tsingle;
+    btdouble: Dest^.tdouble := src^.tdouble;
+    btextended: Dest^.textended := src^.textended;
+    btCurrency: Dest^.tcurrency := Src^.tcurrency;
+    btchar: Dest^.tchar := src^.tchar;
+    {$IFNDEF PS_NOINT64}bts64: dest^.ts64 := src^.ts64;{$ENDIF}
+    btset, btstring: tbtstring(dest^.tstring) := tbtstring(src^.tstring);
+    {$IFNDEF PS_NOWIDESTRING}
+    btunicodestring: tbtunicodestring(dest^.tunistring) := tbtunicodestring(src^.tunistring);
+    btwidestring: tbtwidestring(dest^.twidestring) := tbtwidestring(src^.twidestring);
+    btwidechar: Dest^.tchar := src^.tchar;
+    {$ENDIF}
+  end;
+end;
+
+function DuplicateVariant(Src: PIfRVariant): PIfRVariant;
+begin
+  New(Result);
+  FillChar(Result^, SizeOf(TIfRVariant), 0);
+  CopyVariantContents(Src, Result);
+end;
+
+procedure InitializeVariant(Vari: PIfRVariant; FType: TPSType);
+begin
+  FillChar(vari^, SizeOf(TIfRVariant), 0);
+  if FType.BaseType = btSet then
+  begin
+    SetLength(tbtstring(vari^.tstring), TPSSetType(FType).ByteSize);
+    fillchar(tbtstring(vari^.tstring)[1], length(tbtstring(vari^.tstring)), 0);
+  end;
+  vari^.FType := FType;
+end;
+
+function NewVariant(FType: TPSType): PIfRVariant;
+begin
+  New(Result);
+  InitializeVariant(Result, FType);
+end;
+
+procedure FinalizeA(var s: tbtString); overload; begin s := ''; end;
+{$IFNDEF PS_NOWIDESTRING}
+procedure FinalizeW(var s: tbtwidestring); overload; begin s := ''; end;
+procedure FinalizeU(var s: tbtunicodestring); overload; begin s := ''; end;
+{$ENDIF}
+procedure FinalizeVariant(var p: TIfRVariant);
+begin
+  if (p.FType.BaseType = btString) or (p.FType.basetype = btSet) then
+    finalizeA(tbtstring(p.tstring))
+  {$IFNDEF PS_NOWIDESTRING}
+  else if p.FType.BaseType = btWideString then
+    finalizeW(tbtWideString(p.twidestring)) // tbtwidestring
+  else if p.FType.BaseType = btUnicodeString then
+    finalizeU(tbtUnicodeString(p.tunistring)); // tbtwidestring
+  {$ENDIF}
+end;
+
+procedure DisposeVariant(p: PIfRVariant);
+begin
+  if p <> nil then
+  begin
+    FinalizeVariant(p^);
+    Dispose(p);
+  end;
+end;
+
+
 function TPSOCCompiler.Compile(const s: tbtString): Boolean;
   procedure Cleanup;
   var
@@ -1513,6 +1585,9 @@ function TPSOCCompiler.Compile(const s: tbtString): Boolean;
     FParser.next;
     Result := True;
   end;
+var
+  i: Integer;
+  Proc: TPSProcedure;
 begin
   Result := False;
   FUnitInits := TPSList.Create; //nvds
@@ -1550,111 +1625,17 @@ begin
         exit;
       end;
     end;
-    if (FParser.CurrTokenId = CSTII_Program) and (Position = csStart) then
+    if (FParser.CurrTokenID = CSTII_Uses) then
     begin
-      {$IFDEF PS_USESSUPPORT}
-      if fInCompile>1 then
-      begin
-        MakeError('', ecNotAllowed, 'program');
-        Cleanup;
-        exit;
-      end;
-      {$ENDIF}
-      Position := csProgram;
-      FParser.Next;
-      if FParser.CurrTokenId <> CSTI_Identifier then
-      begin
-        MakeError('', ecIdentifierExpected, '');
-        Cleanup;
-        exit;
-      end;
-      FParser.Next;
-      if FParser.CurrTokenId <> CSTI_Semicolon then
-      begin
-        MakeError('', ecSemicolonExpected, '');
-        Cleanup;
-        exit;
-      end;
-      FParser.Next;
-    end else
-    if (Fparser.CurrTokenID = CSTII_Implementation) and ((Position = csinterface) or (position = csInterfaceUses)) then
-    begin
-      Position := csImplementation;
-      FParser.Next;
-    end else
-    if (Fparser.CurrTokenID = CSTII_Interface) and (Position = csUnit) then
-    begin
-      Position := csInterface;
-      FParser.Next;
-    end else
-    if (FParser.CurrTokenId = CSTII_Unit) and (Position = csStart) and (FAllowUnit) then
-    begin
-      Position := csUnit;
-      FIsUnit := True;
-      FParser.Next;
-      if FParser.CurrTokenId <> CSTI_Identifier then
-      begin
-        MakeError('', ecIdentifierExpected, '');
-        Cleanup;
-        exit;
-      end;
-      if fInCompile = 1 then
-        FUnitName := FParser.OriginalToken;
-      FParser.Next;
-      if FParser.CurrTokenId <> CSTI_Semicolon then
-      begin
-        MakeError('', ecSemicolonExpected, '');
-        Cleanup;
-        exit;
-      end;
-      FParser.Next;
-    end
-    else if (FParser.CurrTokenID = CSTII_Uses) and ((Position < csuses) or (Position = csInterface)) then
-    begin
-      if (Position = csInterface) or (Position =csInterfaceUses)
-        then Position := csInterfaceUses
-        else Position := csUses;
       if not ProcessUses then
       begin
          Cleanup;
         exit;
       end;
-    end else if (FParser.CurrTokenId = CSTII_Procedure) or
-      (FParser.CurrTokenId = CSTII_Function) or (FParser.CurrTokenID = CSTI_OpenBlock) then
-    begin
-      if (Position = csInterface) or (position = csInterfaceUses) then
-      begin
-        if not ProcessFunction(True, nil) then
-        begin
-          Cleanup;
-          exit;
-        end;
-      end else begin
-        Position := csUses;
-        if not ProcessFunction(False, nil) then
-        begin
-          Cleanup;
-          exit;
-        end;
-      end;
     end
     else if (FParser.CurrTokenId = CSTII_Label) then
     begin
-      if (Position = csInterface) or (Position =csInterfaceUses)
-        then Position := csInterfaceUses
-        else Position := csUses;
       if not ProcessLabel(FGlobalBlock.Proc) then
-      begin
-        Cleanup;
-        exit;
-      end;
-    end
-    else if (FParser.CurrTokenId = CSTII_Var) then
-    begin
-      if (Position = csInterface) or (Position =csInterfaceUses)
-        then Position := csInterfaceUses
-        else Position := csUses;
-      if not DoVarBlock(nil) then
       begin
         Cleanup;
         exit;
@@ -1662,57 +1643,15 @@ begin
     end
     else if (FParser.CurrTokenId = CSTII_Const) then
     begin
-      if (Position = csInterface) or (Position =csInterfaceUses)
-        then Position := csInterfaceUses
-        else Position := csUses;
       if not DoConstBlock then
       begin
         Cleanup;
         exit;
       end;
     end
-    else if (FParser.CurrTokenId = CSTII_Type) then
-    begin
-      if (Position = csInterface) or (Position =csInterfaceUses)
-        then Position := csInterfaceUses
-        else Position := csUses;
-      if not DoTypeBlock(FParser) then
-      begin
-        Cleanup;
-        exit;
-      end;
-    end
     else if (FParser.CurrTokenId = CSTII_Begin)
-      {$IFDEF PS_USESSUPPORT}
-             or ((FParser.CurrTokenID = CSTII_initialization) and FIsUnit) {$ENDIF}  then //nvds
+         then
     begin
-      {$IFDEF PS_USESSUPPORT}
-      if FIsUnit then
-      begin
-        Block := TPSBlockInfo.Create(nil); //nvds
-        Block.SubType := tUnitInit;        //nvds
-        Block.Proc := NewProc(PSMainProcNameOrg+'_'+fModule, FastUpperCase(PSMainProcName+'_'+fModule)); //nvds
-        Block.ProcNo := FindProc(PSMainProcName+'_'+fModule);  //nvds
-        Block.Proc.DeclareUnit:= fModule;
-        Block.Proc.DeclarePos := FParser.CurrTokenPos;
-        Block.Proc.DeclareRow := FParser.Row;
-        Block.Proc.DeclareCol := FParser.Col;
-        Block.Proc.Use;
-        FUnitInits.Add(Block);
-        if ProcessSub(Block) then
-        begin
-          if (Fparser.CurrTokenId = CSTI_EOF) THEN break;
-        end
-        else
-        begin
-          Cleanup;
-          exit;
-        end;
-      end
-      else
-      begin
-        FGlobalBlock.Proc.DeclareUnit:= fModule;
-      {$ENDIF}
         FGlobalBlock.Proc.DeclarePos := FParser.CurrTokenPos;
         FGlobalBlock.Proc.DeclareRow := FParser.Row;
         FGlobalBlock.Proc.DeclareCol := FParser.Col;
@@ -1725,34 +1664,7 @@ begin
           Cleanup;
           exit;
         end;
-      {$IFDEF PS_USESSUPPORT}
-      end;
-      {$ENDIF}
     end
-    {$IFDEF PS_USESSUPPORT}
-    else if ((FParser.CurrTokenID = CSTII_finalization) and FIsUnit) then //NvdS
-    begin
-      Block := TPSBlockInfo.Create(nil);
-      Block.SubType := tUnitFinish;
-      Block.Proc := NewProc('!Finish_'+fModule, '!FINISH_'+FastUppercase(fModule));
-      Block.ProcNo := FindProc('!FINISH_'+FastUppercase(fModule));
-      Block.Proc.DeclareUnit:= fModule;
-
-      Block.Proc.DeclarePos := FParser.CurrTokenPos;
-      Block.Proc.DeclareRow := FParser.Row;
-      Block.Proc.DeclareCol := FParser.Col;
-      Block.Proc.use;
-      FUnitFinits.Add(Block);
-      if ProcessSub(Block) then
-      begin
-        break;
-      end else begin
-        Cleanup;
-        Result :=  False; //Cleanup;
-        exit;
-      end;
-    end
-    {$endif}
     else if (Fparser.CurrTokenId = CSTII_End) and (FAllowNoBegin or FIsUnit) then
     begin
       FParser.Next;
@@ -1790,9 +1702,9 @@ begin
       begin
         with MakeError('', ecUnsatisfiedForward, TPSInternalProcedure(Proc).Name) do
         begin
-          FPosition := TPSInternalProcedure(Proc).DeclarePos;
-          FRow := TPSInternalProcedure(Proc).DeclareRow;
-          FCol := TPSInternalProcedure(Proc).DeclareCol;
+          Pos := TPSInternalProcedure(Proc).DeclarePos;
+          Row := TPSInternalProcedure(Proc).DeclareRow;
+          Col := TPSInternalProcedure(Proc).DeclareCol;
         end;
         Cleanup;
         Exit;
@@ -1809,9 +1721,9 @@ begin
       begin
         with MakeHint({$IFDEF PS_USESSUPPORT}TPSVar(FVars[I]).DeclareUnit{$ELSE}''{$ENDIF}, ehVariableNotUsed, TPSVar(FVars[I]).Name) do
         begin
-          FPosition := TPSVar(FVars[I]).DeclarePos;
-          FRow := TPSVar(FVars[I]).DeclareRow;
-          FCol := TPSVar(FVars[I]).DeclareCol;
+          Pos := TPSVar(FVars[I]).DeclarePos;
+          Row := TPSVar(FVars[I]).DeclareRow;
+          Col := TPSVar(FVars[I]).DeclareCol;
         end;
       end;
     end;
@@ -1838,7 +1750,7 @@ end;
 constructor TPSOCCompiler.Create;
 begin
   FParser := TPSOCParser.Create;
-  FParser.OnParserError:=@ParserError;
+  FParser.OnParserError:=ParserError;
   FAutoFreeList := TPSList.Create;
   FOutput := '';
   FAllowDuplicateRegister := true;
