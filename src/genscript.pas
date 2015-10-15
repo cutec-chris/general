@@ -29,11 +29,13 @@ uses
 type
   TScript = class;
   TLineEvent = procedure(Sender : TScript;Module : string;Position,Row,Col : Integer) of object;
+  TLineMessageEvent = procedure(Sender : TScript;Module,Message : string;Position,Row,Col : Integer) of object;
   TScriptStatus = (ssNone,ssRunning,ssPaused);
   { TScript }
 
   TScript = class
   private
+    FCompileMessage: TLineMessageEvent;
     FIdle: TNotifyEvent;
     FResults: string;
     FRlFunc: TStrInFunc;
@@ -70,6 +72,7 @@ type
     function IsRunning : Boolean;virtual;
     function GetVarContents(Identifier : string) : string;virtual;
     property OnStatusChanged : TNotifyEvent read FStatusChanged write FStatusChanged;
+    property OnCompileMessage : TLineMessageEvent read FCompileMessage write FCompileMessage;
     property OnRunLine : TLineEvent read FRunLine write FRunLine;
     property OnIdle : TNotifyEvent read FIdle write FIdle;
   end;

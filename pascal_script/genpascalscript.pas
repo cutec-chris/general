@@ -1022,6 +1022,7 @@ var
   i: Integer;
   aBytecode: tbtString;
   aDebugData: tbtString;
+  aMsg: TPSPascalCompilerMessage;
 begin
   Result := False;
   if not Assigned(Compiler) then exit;
@@ -1031,7 +1032,11 @@ begin
   Result:= Compiler.Compile(Source) and Compiler.GetOutput(aBytecode);
   ByteCode:=aBytecode;
   for i := 0 to Compiler.MsgCount-1 do
-    CompleteOutput:=CompleteOutput+Compiler.Msg[i].MessageToString+LineEnding;
+    begin
+      CompleteOutput:=CompleteOutput+Compiler.Msg[i].MessageToString+LineEnding;
+      aMsg := Compiler.Msg[i];
+      if Assigned(OnCompileMessage) then OnCompileMessage(Self,aMsg.UnitName,Compiler.Msg[i].MessageToString,Compiler.Msg[i].Pos,Compiler.Msg[i].Row,Compiler.Msg[i].Col);
+    end;
   Runtime.Clear;
   Result:= Result and FRuntime.LoadData(Bytecode);
   if FRuntime is TPSDebugExec then
@@ -1108,7 +1113,7 @@ var
   s1, s: tbtstring;
 begin
   Result := '';
-  if FRuntime is TPSDebugExec then
+  if (FRuntime is TPSDebugExec) and (GetStatus=ssPaused) then
     with TPSDebugExec(FRuntime) do
       begin
         s := Uppercase(Identifier);
