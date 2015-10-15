@@ -117,6 +117,7 @@ type
     function InternalUses(Comp : TPSPascalCompiler;Name : string) : Boolean;virtual;
     function Execute(aParameters: Variant;Debug : Boolean = false): Boolean; override;
     property Runtime : TPSExec read FRuntime write SetRuntime;
+    property Process : TProcess read FProcess write FProcess;
     property ClassImporter : TPSRuntimeClassImporter read FClassImporter write SetClassImporter;
     property Compiler : TIPSPascalCompiler read FCompiler write SetCompiler;
     function AddMethodEx(Slf, Ptr: Pointer; const Decl: tbtstring; CallingConv: uPSRuntime.TPSCallingConvention): Boolean;
@@ -133,6 +134,7 @@ type
     function Resume: Boolean; override;
     function Pause: Boolean; override;
     function IsRunning: Boolean; override;
+    function GetVarContents(Identifier: string): string;override;
     constructor Create;override;
     destructor Destroy; override;
     property OnExecuteStep : TNotifyEvent read FExecStep write FExecStep;
@@ -1097,6 +1099,61 @@ end;
 function TPascalScript.IsRunning: Boolean;
 begin
   Result:=(Status=ssRunning) or (Status=ssPaused);
+end;
+
+function TPascalScript.GetVarContents(Identifier: string): string;
+var
+  i: Longint;
+  pv: PIFVariant;
+  s1, s: tbtstring;
+begin
+  Result := '';
+  if FRuntime is TPSDebugExec then
+    with TPSDebugExec(FRuntime) do
+      begin
+        s := Uppercase(Identifier);
+        if pos('.', s) > 0 then
+        begin
+          s1 := copy(s,1,pos('.', s) -1);
+          delete(s,1,pos('.', Identifier));
+        end else begin
+          s1 := s;
+          s := '';
+        end;
+        pv := nil;
+        for i := 0 to TPSDebugExec(Runtime).CurrentProcVars.Count -1 do
+        begin
+          if Uppercase(TPSDebugExec(Runtime).CurrentProcVars[i]) =  s1 then
+          begin
+            pv := TPSDebugExec(Runtime).GetProcVar(i);
+            break;
+          end;
+        end;
+        if pv = nil then
+        begin
+          for i := 0 to TPSDebugExec(Runtime).CurrentProcParams.Count -1 do
+          begin
+            if Uppercase(TPSDebugExec(Runtime).CurrentProcParams[i]) =  s1 then
+            begin
+              pv := TPSDebugExec(Runtime).GetProcParam(i);
+              break;
+            end;
+          end;
+        end;
+        if pv = nil then
+        begin
+          for i := 0 to TPSDebugExec(Runtime).GlobalVarNames.Count -1 do
+          begin
+            if Uppercase(TPSDebugExec(Runtime).GlobalVarNames[i]) =  s1 then
+            begin
+              pv := TPSDebugExec(Runtime).GetGlobalVar(i);
+              break;
+            end;
+          end;
+        end;
+        if pv <> nil then
+          Result := PSVariantToString(NewTPSVariantIFC(pv, False), s);
+      end;
 end;
 
 constructor TPascalScript.Create;

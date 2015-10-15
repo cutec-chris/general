@@ -68,6 +68,7 @@ type
     function Resume : Boolean;virtual;
     function Stop : Boolean;virtual;
     function IsRunning : Boolean;virtual;
+    function GetVarContents(Identifier : string) : string;virtual;
     property OnStatusChanged : TNotifyEvent read FStatusChanged write FStatusChanged;
     property OnRunLine : TLineEvent read FRunLine write FRunLine;
     property OnIdle : TNotifyEvent read FIdle write FIdle;
@@ -170,6 +171,11 @@ end;
 function TScript.IsRunning: Boolean;
 begin
   Result := False;
+end;
+
+function TScript.GetVarContents(Identifier: string): string;
+begin
+  Result := '';
 end;
 
 end.
