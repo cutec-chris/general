@@ -161,6 +161,9 @@ uses httpsend,ssl_openssl
   ,BaseUnix
   {$endif}
   ;
+resourcestring
+  STR_RUNTIME_ERROR='[Laufzeitfehler] %s(%d:%d), bytecode(%d:%d): %s'; //Birb
+
 type
   aProcSleepT = procedure(aSleep : TScriptSleepFunction);stdcall;
 
@@ -937,6 +940,8 @@ var
   i: Integer;
   aDir: String;
   aProc: aProcT2;
+  aRow: Integer;
+  aMsg: String;
 begin
   if Debug and (not (Runtime is TPSDebugExec)) then
     begin
@@ -969,7 +974,11 @@ begin
         Result := FRuntime.RunScript
               and (FRuntime.ExceptionCode = erNoError);
         if not Result then
-          Results:= PSErrorToString(FRuntime.LastEx, '');
+          begin
+            Results:= PSErrorToString(FRuntime.LastEx, '');
+            //aMsg := Format(STR_RUNTIME_ERROR, ['File', Debugger.ExecErrorRow,Debugger.ExecErrorCol,Debugger.ExecErrorProcNo,Debugger.ExecErrorByteCodePosition,Debugger.ExecErrorToString])
+            if Assigned(OnCompileMessage) then OnCompileMessage(Self,'',TIFErrorToString(Runtime.ExceptionCode, Runtime.ExceptionString),Runtime.ExceptionPos,0,0);
+          end;
         if FProcess.Running then InternalKill;
         DoCleanup;
       except
