@@ -36,7 +36,7 @@
       </Item2>
       <Item3>
         <PackageName Value="ppascalscriptfcl"/>
-        <DefaultFilename Value="..\..\promet\source\components\pascalscript\ppascalscriptfcl.lpk"/>
+        <DefaultFilename Value="..\..\promet\source\components\pascalscript\Source\ppascalscriptfcl.lpk"/>
       </Item3>
       <Item4>
         <PackageName Value="FCL"/>
