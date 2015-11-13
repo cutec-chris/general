@@ -199,11 +199,11 @@ var
 begin
   {$ifdef WINDOWS}
   if (mbYes in Buttons) and (mbNo in Buttons) and (mbCancel in Buttons) then
-    res := MessageBox(0,PChar(aMsg),PChar('Frage'),MB_YESNOCANCEL+MB_ICONINFORMATION)
+    res := MessageBox(0,PChar(UniToSys(aMsg)),PChar('Frage'),MB_YESNOCANCEL+MB_ICONINFORMATION)
   else if (mbYes in Buttons) and (mbNo in Buttons) then
-    res := MessageBox(0,PChar(aMsg),PChar('Frage'),MB_YESNO+MB_ICONINFORMATION)
+    res := MessageBox(0,PChar(UniToSys(aMsg)),PChar('Frage'),MB_YESNO+MB_ICONINFORMATION)
   else if mbOK in Buttons then
-    res := MessageBox(0,PChar(aMsg),PChar('Frage'),MB_OK+MB_ICONINFORMATION)
+    res := MessageBox(0,PChar(UniToSys(aMsg)),PChar('Frage'),MB_OK+MB_ICONINFORMATION)
   else if (mbOK in Buttons) and (mbCancel in Buttons) then
     res := MessageBox(0,PChar(UniToSys(aMsg)),PChar('Frage'),MB_OKCANCEL+MB_ICONINFORMATION);
   case res of
