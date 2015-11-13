@@ -41,6 +41,8 @@ type
     procedure DoWriteData;
   public
     procedure Init;
+    procedure Stop;
+    destructor Destroy; override;
     procedure Execute; override;
     property Script : TScript read FScript write FScript;
   end;
@@ -56,6 +58,7 @@ type
     procedure Init; override;
     function IsRunning: Boolean; override;
     function GetStatus: TScriptStatus; override;
+    function Stop: Boolean; override;
     function Execute(aParameters: Variant;Debug : Boolean = false): Boolean; override;
     destructor Destroy; override;
   end;
@@ -64,9 +67,12 @@ implementation
 
 procedure TPythonThread.Execute;
 begin
-  while not Terminated do
+  while (not Terminated) and Assigned(fEngine) do
     begin
-      fEngine.ExecString(Script.Source);
+      try
+        fEngine.ExecString(Script.Source);
+      except
+      end;
       Suspend;
     end;
 end;
@@ -119,6 +125,15 @@ begin
   else Result := ssNone;
 end;
 
+function TPythonScript.Stop: Boolean;
+begin
+  if IsRunning then
+    begin
+      FThread.Stop;
+      Result:=True;
+    end;
+end;
+
 procedure TPythonThread.Init;
 begin
   fEngine := TPythonEngine.Create(nil);
@@ -127,8 +142,28 @@ begin
   fIO.OnSendData:=@fIOSendData;
   fEngine.IO := fIO;
   fEngine.RedirectIO:=True;
-  fEngine.InitThreads:=True;
   fEngine.Initialize;
+end;
+
+procedure TPythonThread.Stop;
+var
+  i: Integer;
+begin
+  for i := 0 to fEngine.ClientCount-1 do
+    begin
+      fEngine.Clients[i].Finalize;
+      fEngine.Clients[i].ClearEngine;
+    end;
+  fEngine.Initialize;
+end;
+
+destructor TPythonThread.Destroy;
+var
+  i: Integer;
+begin
+  FreeAndNil(fIO);
+  FreeAndNil(fEngine);
+  inherited Destroy;
 end;
 
 function TPythonScript.Execute(aParameters: Variant; Debug: Boolean): Boolean;
