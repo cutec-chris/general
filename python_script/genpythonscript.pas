@@ -54,6 +54,8 @@ type
     function GetTyp: string; override;
   public
     procedure Init; override;
+    function IsRunning: Boolean; override;
+    function GetStatus: TScriptStatus; override;
     function Execute(aParameters: Variant;Debug : Boolean = false): Boolean; override;
     destructor Destroy; override;
   end;
@@ -103,6 +105,18 @@ begin
   FThread := TPythonThread.Create(True);
   FThread.Script:=Self;
   FThread.Init;
+end;
+
+function TPythonScript.IsRunning: Boolean;
+begin
+  Result:=not FThread.Suspended;
+end;
+
+function TPythonScript.GetStatus: TScriptStatus;
+begin
+  if IsRunning then
+    Result := ssRunning
+  else Result := ssNone;
 end;
 
 procedure TPythonThread.Init;
