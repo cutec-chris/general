@@ -29,15 +29,27 @@ uses
   Classes, SysUtils, Utils, genscript, PythonEngine;
 
 type
+  TPythonThread = class(TThread)
+  private
+    IOData : string;
+    fEngine : TPythonEngine;
+    fIO: TPythonInputOutput;
+    FScript: TScript;
+    procedure fIOReceiveData(Sender: TObject; var Data: AnsiString);
+    procedure fIOSendData(Sender: TObject; const Data: AnsiString);
+    procedure DoReadData;
+    procedure DoWriteData;
+  public
+    procedure Init;
+    procedure Execute; override;
+    property Script : TScript read FScript write FScript;
+  end;
 
   { TPythonScript }
 
   TPythonScript = class(TScript)
-    procedure fIOReceiveData(Sender: TObject; var Data: AnsiString);
-    procedure fIOSendData(Sender: TObject; const Data: AnsiString);
   private
-    fEngine : TPythonEngine;
-    fIO: TPythonInputOutput;
+    FThread : TPythonThread;
   protected
     function GetTyp: string; override;
   public
@@ -48,16 +60,37 @@ type
 
 implementation
 
-procedure TPythonScript.fIOReceiveData(Sender: TObject; var Data: AnsiString);
+procedure TPythonThread.Execute;
 begin
-  if Assigned(Readln) then
-    Readln(Data);
+  while not Terminated do
+    begin
+      fEngine.ExecString(Script.Source);
+      Suspend;
+    end;
 end;
 
-procedure TPythonScript.fIOSendData(Sender: TObject; const Data: AnsiString);
+procedure TPythonThread.fIOReceiveData(Sender: TObject; var Data: AnsiString);
 begin
-  if Assigned(WriteLn) then
-    WriteLn(Data);
+  Synchronize(@DoWriteData);
+  IOData:=Data;
+end;
+
+procedure TPythonThread.fIOSendData(Sender: TObject; const Data: AnsiString);
+begin
+  IOData:=Data;
+  Synchronize(@DoReadData);
+end;
+
+procedure TPythonThread.DoReadData;
+begin
+  if Assigned(Script.WriteLn) then
+    Script.WriteLn(IOData);
+end;
+
+procedure TPythonThread.DoWriteData;
+begin
+  if Assigned(Script.Readln) then
+    Script.Readln(IOData);
 end;
 
 function TPythonScript.GetTyp: string;
@@ -67,12 +100,20 @@ end;
 
 procedure TPythonScript.Init;
 begin
+  FThread := TPythonThread.Create(True);
+  FThread.Script:=Self;
+  FThread.Init;
+end;
+
+procedure TPythonThread.Init;
+begin
   fEngine := TPythonEngine.Create(nil);
   fIO := TPythonInputOutput.Create(nil);
   fIO.OnReceiveData:=@fIOReceiveData;
   fIO.OnSendData:=@fIOSendData;
   fEngine.IO := fIO;
   fEngine.RedirectIO:=True;
+  fEngine.InitThreads:=True;
   fEngine.Initialize;
 end;
 
@@ -80,7 +121,14 @@ function TPythonScript.Execute(aParameters: Variant; Debug: Boolean): Boolean;
 begin
   Result := False;
   try
-    fEngine.ExecString(Source);
+    FThread.Resume;
+    while not FThread.Suspended do
+      begin
+        if Assigned(Self.OnRunLine) then
+          OnRunLine(Self,'',-1,-1,-1)
+        else
+          sleep(100);
+      end;
     Result := True;
   except
     on e : Exception do
@@ -91,8 +139,7 @@ end;
 
 destructor TPythonScript.Destroy;
 begin
-  fIO.Free;
-  fEngine.Free;
+  FreeAndNil(FThread);
   inherited Destroy;
 end;
 

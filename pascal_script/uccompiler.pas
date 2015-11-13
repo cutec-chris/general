@@ -762,7 +762,7 @@ begin
   Result := TPSInternalProcedure.Create;
   Result.OriginalName := OriginalName;
   Result.Name := Name;
-  Result.DeclareUnit:=fModule;
+  //Result.DeclareUnit:=fModule;
   Result.DeclarePos := FParser.CurrTokenPos;
   Result.DeclareRow := FParser.Row;
   Result.DeclareCol := FParser.Col;
