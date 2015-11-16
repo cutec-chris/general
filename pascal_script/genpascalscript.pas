@@ -272,7 +272,7 @@ var
 begin
   Result := ProcessDllImport(Sender,p);
 
-  aLib := lowercase(copy(p.Decl,5,length(p.Decl)));
+  aLib := ExtractFileName(lowercase(copy(p.Decl,5,length(p.Decl))));
   if rpos('.',aLib)>0 then
     aLibName := lowercase(copy(aLib,0,rpos('.',aLib)-1))
   else if rpos(#0,aLib)>0 then
@@ -294,7 +294,7 @@ begin
               repeat
                 ph := Caller.FindProcResource2(@dllFree, i);
                 if (ph = nil) then break;
-                actLib := lowercase(copy(ph^.dllname,0,rpos('.',ph^.dllname)-1));
+                actLib := ExtractFileName(lowercase(copy(ph^.dllname,0,rpos('.',ph^.dllname)-1)));
                 if rpos('.',ph^.dllname)=0 then
                   actLib := lowercase(ph^.dllname);
                 if (actLib = aLibName) then
