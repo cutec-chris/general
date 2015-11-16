@@ -32,12 +32,15 @@ type
   { TPythonScript }
 
   TPythonScript = class(TScript)
+    procedure fInternalsInitialization(Sender: TObject);
   private
     fEngine : TPythonEngine;
     fIO: TPythonInputOutput;
+    fInternals: TPythonModule;
     FLines : TStringList;
     procedure fIOReceiveData(Sender: TObject; var Data: AnsiString);
     procedure fIOSendData(Sender: TObject; const Data: AnsiString);
+    function  prometinternals_callline( self, args : PPyObject ) : PPyObject; cdecl;
   protected
     function GetTyp: string; override;
   public
@@ -51,6 +54,12 @@ type
 
 implementation
 
+procedure TPythonScript.fInternalsInitialization(Sender: TObject);
+begin
+  with Sender as TPythonModule do
+    AddDelphiMethod( '_CallLineInfo', @prometinternals_callline, '_CallLineInfo' );
+end;
+
 procedure TPythonScript.fIOReceiveData(Sender: TObject; var Data: AnsiString);
 begin
   if Assigned(Readln) then
@@ -61,6 +70,13 @@ procedure TPythonScript.fIOSendData(Sender: TObject; const Data: AnsiString);
 begin
   if Assigned(WriteLn) then
     WriteLn(Data);
+end;
+
+function TPythonScript.prometinternals_callline(self, args: PPyObject
+  ): PPyObject; cdecl;
+begin
+  if Assigned(OnRunLine) then
+    OnRunLine(Self,'',0,0,0);
 end;
 
 function TPythonScript.GetTyp: string;
@@ -75,6 +91,11 @@ begin
   fIO := TPythonInputOutput.Create(nil);
   fIO.OnReceiveData:=@fIOReceiveData;
   fIO.OnSendData:=@fIOSendData;
+  fInternals := TPythonModule.Create(nil);
+  fInternals.OnInitialization:=@fInternalsInitialization;
+  fInternals.ModuleName:='prometinternals';
+  fInternals.Engine:=fEngine;
+  fEngine.InitScript.Add('import prometinternals');
   fEngine.IO := fIO;
   fEngine.RedirectIO:=True;
   fEngine.Initialize;
@@ -115,7 +136,7 @@ begin
         FLines.Text:=Source;
         for i := 0 to FLines.Count-1 do
           if copy(FLines[i],length(FLines[i]),1)<>':' then
-            FLines[i] := FLines[i]+';_CallLineInfo';
+            FLines[i] := FLines[i]+';prometinternals._CallLineInfo('+IntToStr(i)+')';
         fEngine.ExecString(FLines.Text);
         FreeAndNil(FLines);
       end
@@ -132,6 +153,7 @@ destructor TPythonScript.Destroy;
 begin
   FreeAndNil(fIO);
   FreeAndNil(fEngine);
+  FreeAndNil(fInternals);
   inherited Destroy;
 end;
 
