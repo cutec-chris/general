@@ -36,6 +36,7 @@ type
   TScript = class
   private
     FCompileMessage: TLineMessageEvent;
+    FDWrFunc: TStrOutFunc;
     FIdle: TNotifyEvent;
     FResults: string;
     FRlFunc: TStrInFunc;
@@ -50,6 +51,7 @@ type
     function GetTyp: string;virtual;abstract;
     procedure InternalWrite(const s: string);
     procedure InternalWriteln(const s: string);
+    procedure InternalDebugln(const s: string);
     procedure InternalReadln(var s: string);
     procedure SetSource(AValue: string);virtual;
     function GetStatus: TScriptStatus;virtual;
@@ -62,6 +64,7 @@ type
     property Results : string read FResults write FResults;
     property Write : TStrOutFunc read FWriFunc write FWriFunc;
     property Writeln : TStrOutFunc read FWrFunc write FWRFunc;
+    property Debugln : TStrOutFunc read FDWrFunc write FDWRFunc;
     property Readln : TStrInFunc read FRlFunc write FRlFunc;
     property Typ : string read GetTyp;
     function StepInto : Boolean;virtual;
@@ -130,6 +133,11 @@ end;
 procedure TScript.InternalWriteln(const s: string);
 begin
   if Assigned(FWrFunc) then FWrFunc(s);
+end;
+
+procedure TScript.InternalDebugln(const s: string);
+begin
+  if Assigned(FDWrFunc) then FDWrFunc(s);
 end;
 
 procedure TScript.InternalReadln(var s: string);
