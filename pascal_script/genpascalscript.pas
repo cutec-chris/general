@@ -978,6 +978,7 @@ begin
             Results:= PSErrorToString(FRuntime.LastEx, '');
             //aMsg := Format(STR_RUNTIME_ERROR, ['File', Debugger.ExecErrorRow,Debugger.ExecErrorCol,Debugger.ExecErrorProcNo,Debugger.ExecErrorByteCodePosition,Debugger.ExecErrorToString])
             if Assigned(OnCompileMessage) then OnCompileMessage(Self,'',TIFErrorToString(Runtime.ExceptionCode, Runtime.ExceptionString),Runtime.ExceptionPos,0,0);
+            ByteCode:='';//recompile on unsuccesful execution
           end;
         if FProcess.Running then InternalKill;
         DoCleanup;
