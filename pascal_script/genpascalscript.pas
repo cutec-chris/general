@@ -452,6 +452,8 @@ begin
         AddMethod(Self,@TPascalScript.InternalFindFirst,'function FindFirst(const FileName: String; var FindRec: TFindRec): Boolean;');
         AddMethod(Self,@TPascalScript.InternalFindNext,'function FindNext(var FindRec: TFindRec): Boolean;');
         AddMethod(Self,@TPascalScript.InternalFindClose,'function FindClose(var FindRec: TFindRec): Boolean;');
+        AddFunction(@SysUtils.GetEnvironmentVariable,'function GetEnvironmentVariable(Const EnvVar : String) : String;');
+        AddFunction(@SysUtils.GetEnvironmentVariableCount,'function GetEnvironmentVariableCount : Integer;');
       end
     else if lowercase(Name)='exec' then
       begin
