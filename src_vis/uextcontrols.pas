@@ -686,12 +686,20 @@ function TExtMenuPageControl.NewFrame(aFrameClass: TFrameClass;
 var
   aFrame: TTabSheet;
   i: Integer;
+  bFrame: TControl;
 begin
   AddTabClass(aFrameClass,aClassName,aAddFunction,aImageIndex);
   if AddFrame then
     begin
       if GetTab(aFrameClass)=nil then
-        AddTab(aFrameClass.Create(Self),SetActive,NewName,aImageIndex,UseFunction);
+        AddTab(aFrameClass.Create(Self),SetActive,NewName,aImageIndex,UseFunction)
+      else
+        begin
+          aFrame := GetTab(aFrameClass);
+          bFrame := aFrame.Controls[0];
+          if Assigned(bFrame) then
+            TExtControlFrame(bFrame).DoRefresh(True);
+        end;
     end
   else
     begin
