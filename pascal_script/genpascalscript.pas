@@ -142,6 +142,12 @@ type
     procedure OpenTool(aName : string);
   end;
 
+  TUniStringList = class(TStringList)
+  public
+    procedure SaveToFile(const FileName: string); override;
+    procedure LoadFromFile(const FileName: string); override;
+  end;
+
 type
   TScriptSleepFunction = procedure (aTime : LongInt); StdCall;
 var
@@ -347,6 +353,16 @@ begin
     ActRuntime.OnIdle(ActRuntime);
 end;
 
+procedure TUniStringList.SaveToFile(const FileName: string);
+begin
+  inherited SaveToFile(UniToSys(FileName));
+end;
+
+procedure TUniStringList.LoadFromFile(const FileName: string);
+begin
+  inherited LoadFromFile(UniToSys(FileName));
+end;
+
 function TPascalScript.InternalFindFirst(const FileName: String; var FindRec: TInternalFindRec): Boolean;
 begin
   try
@@ -428,6 +444,17 @@ begin
       begin
         uPSC_classes.SIRegister_Classes(Comp,false);
         uPSR_classes.RIRegister_Classes(FClassImporter,false);
+        with Comp.FindClass('TStringList') do
+          begin
+            RegisterMethod('procedure SaveToFile(const FileName: string);');
+            RegisterMethod('procedure LoadFromFile(const FileName: string);');
+          end;
+        //TODO:use TUniStringList to ensure that we can use UTF8 Filenames
+        with FClassImporter.FindClass('TStringList') do
+          begin
+            RegisterVirtualMethod(@TStringList.LoadFromFile,'LOADFROMFILE');
+            RegisterVirtualMethod(@TStringList.SaveToFile,'SAVETOFILE');
+          end;
       end
     else if lowercase(Name)='sysutils' then
       begin
