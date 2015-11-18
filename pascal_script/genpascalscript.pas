@@ -1010,13 +1010,16 @@ begin
             ByteCode:='';//recompile on unsuccesful execution
           end;
         if FProcess.Running then InternalKill;
-        DoCleanup;
       except
         on e : Exception do
           begin
             Results:=e.Message;
             Result := false;
           end;
+      end;
+      try
+        DoCleanup;
+      except
       end;
     end;
   SetCurrentDir(aDir);
