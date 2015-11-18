@@ -38,6 +38,7 @@ type
     FCompileMessage: TLineMessageEvent;
     FDWrFunc: TStrOutFunc;
     FIdle: TNotifyEvent;
+    FParent: TObject;
     FResults: string;
     FRlFunc: TStrInFunc;
     FRunLine: TLineEvent;
@@ -74,6 +75,7 @@ type
     function Stop : Boolean;virtual;
     function IsRunning : Boolean;virtual;
     function GetVarContents(Identifier : string) : string;virtual;
+    property Parent : TObject read FParent write fParent;
     property OnStatusChanged : TNotifyEvent read FStatusChanged write FStatusChanged;
     property OnCompileMessage : TLineMessageEvent read FCompileMessage write FCompileMessage;
     property OnRunLine : TLineEvent read FRunLine write FRunLine;
