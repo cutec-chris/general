@@ -7,8 +7,14 @@ unit general_pascal_script;
 interface
 
 uses
-  genpascalscript, gencscript, uccompiler;
+  genpascalscript, gencscript, uccompiler, LazarusPackageIntf;
 
 implementation
 
+procedure Register;
+begin
+end;
+
+initialization
+  RegisterPackage('general_pascal_script', @Register);
 end.

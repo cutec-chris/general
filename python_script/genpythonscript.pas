@@ -38,9 +38,10 @@ type
     fIO: TPythonInputOutput;
     fInternals: TPythonModule;
     FLines : TStringList;
+    FRunning: Boolean;
+    FStopping : Boolean;
     procedure fIOReceiveData(Sender: TObject; var Data: AnsiString);
     procedure fIOSendData(Sender: TObject; const Data: AnsiString);
-    function  prometinternals_callline( self, args : PPyObject ) : PPyObject; cdecl;
   protected
     function GetTyp: string; override;
   public
@@ -54,10 +55,24 @@ type
 
 implementation
 
+var
+  aScript : TPythonScript;
+
+function prometinternals_callline(self, args: PPyObject
+  ): PPyObject; cdecl;
+begin
+  if Assigned(aScript.OnRunLine) then
+    aScript.OnRunLine(aScript,'',0,0,0);
+  if not aScript.FStopping then
+    Result:=aScript.fEngine.ReturnNone
+  else Result:=nil;
+end;
+
 procedure TPythonScript.fInternalsInitialization(Sender: TObject);
 begin
+  aScript := Self;
   with Sender as TPythonModule do
-    AddDelphiMethod( '_CallLineInfo', @prometinternals_callline, '_CallLineInfo' );
+    AddMethod( '_CallLineInfo', @prometinternals_callline, '_CallLineInfo' );
 end;
 
 procedure TPythonScript.fIOReceiveData(Sender: TObject; var Data: AnsiString);
@@ -72,13 +87,6 @@ begin
     WriteLn(Data);
 end;
 
-function TPythonScript.prometinternals_callline(self, args: PPyObject
-  ): PPyObject; cdecl;
-begin
-  if Assigned(OnRunLine) then
-    OnRunLine(Self,'',0,0,0);
-end;
-
 function TPythonScript.GetTyp: string;
 begin
   Result := 'Python';
@@ -87,6 +95,8 @@ end;
 procedure TPythonScript.Init;
 begin
   FLines:=nil;
+  FRunning:=False;
+  FStopping:=False;
   fEngine := TPythonEngine.Create(nil);
   fIO := TPythonInputOutput.Create(nil);
   fIO.OnReceiveData:=@fIOReceiveData;
@@ -103,7 +113,7 @@ end;
 
 function TPythonScript.IsRunning: Boolean;
 begin
-  Result:=Assigned(FLines);
+  Result:=FRunning;
 end;
 
 function TPythonScript.GetStatus: TScriptStatus;
@@ -118,6 +128,7 @@ begin
   if IsRunning then
     begin
       FreeAndNil(FLines);
+      FStopping := True;
       Result:=True;
     end;
 end;
@@ -130,6 +141,7 @@ var
 begin
   Result := False;
   try
+    FRunning := True;
     if Debug then
       begin
         FLines := TStringList.Create;
@@ -141,11 +153,18 @@ begin
         FreeAndNil(FLines);
       end
     else fEngine.ExecString(Source);
+    FRunning:=False;
     Result := True;
   except
     on e : Exception do
-      if Assigned(Writeln) then
-        Writeln(e.Message);
+      begin
+        if Assigned(Writeln) then
+          Writeln(e.Message);
+        FRunning:=False;
+        FreeAndNil(FLines);
+        fEngine.Finalize;
+        fEngine.Initialize;
+      end;
   end;
 end;
 
