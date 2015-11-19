@@ -19,7 +19,7 @@
         </SyntaxOptions>
       </Parsing>
     </CompilerOptions>
-    <Files Count="17">
+    <Files Count="19">
       <Item1>
         <Filename Value="src_vis\ubenchmark.pas"/>
         <UnitName Value="ubenchmark"/>
@@ -89,6 +89,14 @@
         <Filename Value="src_vis\uimaging.pas"/>
         <UnitName Value="uImaging"/>
       </Item17>
+      <Item18>
+        <Filename Value="src_vis\uwait.pas"/>
+        <UnitName Value="uwait"/>
+      </Item18>
+      <Item19>
+        <Filename Value="src_vis\ulogwait.pas"/>
+        <UnitName Value="uLogWait"/>
+      </Item19>
     </Files>
     <i18n>
       <EnableI18N Value="True"/>
