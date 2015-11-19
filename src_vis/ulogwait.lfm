@@ -10,7 +10,7 @@ object fLogWaitForm: TfLogWaitForm
   OnShow = FormShow
   Position = poMainFormCenter
   ShowInTaskBar = stAlways
-  LCLVersion = '1.3'
+  LCLVersion = '1.5'
   object lbLog: TListBox
     Left = 8
     Height = 259
@@ -20,7 +20,6 @@ object fLogWaitForm: TfLogWaitForm
     ItemHeight = 0
     ScrollWidth = 477
     TabOrder = 0
-    TopIndex = -1
   end
   object bAbort: TBitBtn
     Left = 372
@@ -29,9 +28,10 @@ object fLogWaitForm: TfLogWaitForm
     Width = 115
     Anchors = [akRight, akBottom]
     Cancel = True
-    Caption = 'Abbrechen'
+    DefaultCaption = True
     Kind = bkCancel
     ModalResult = 2
+    OnClick = bAbortClick
     TabOrder = 1
   end
-end
+end

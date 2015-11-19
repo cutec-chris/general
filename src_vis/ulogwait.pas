@@ -33,13 +33,18 @@ type
   TfLogWaitForm = class(TForm)
     bAbort: TBitBtn;
     lbLog: TListBox;
+    procedure bAbortClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ShowInfo(Info: string);
   private
+    FAbort: Boolean;
+    procedure SetBtnKind(AValue: TBitBtnKind);
     { private declarations }
   public
     { public declarations }
     procedure SetLanguage;
+    property Abort : Boolean read FAbort;
+    property AbortKind : TBitBtnKind write SetBtnKind;
   end;
 
 var
@@ -61,6 +66,11 @@ begin
   Application.Processmessages;
 end;
 
+procedure TfLogWaitForm.SetBtnKind(AValue: TBitBtnKind);
+begin
+  bAbort.Kind:=AValue;
+end;
+
 procedure TfLogWaitForm.SetLanguage;
 begin
   if not Assigned(Self) then
@@ -78,7 +88,15 @@ begin
       Application.CreateForm(TfLogWaitForm,fLogWaitform);
       Self := fLogWaitForm;
     end;
+  FAbort:=False;
+  bAbort.Kind:=bkCancel;
   lbLog.Items.Clear;
+end;
+
+procedure TfLogWaitForm.bAbortClick(Sender: TObject);
+begin
+  FAbort:=True;
+  if bAbort.Kind=bkClose then Close;
 end;
 
 initialization
