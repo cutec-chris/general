@@ -60,6 +60,7 @@ type
   end;
 
   TPascalOnUses = function(Sender: TPascalScript; const Name: tbtString; OnlyAdditional : Boolean): Boolean of object;
+  TWriteStringEvent = procedure(Sender: TObject;s: String) of object;
 
   { TPascalScript }
 
@@ -68,6 +69,7 @@ type
     CompleteOutput : string;
     FExecStep: TNotifyEvent;
     FOnUses: TPascalOnUses;
+    FExecWriteString : TWriteStringEvent;
     FProcess: TProcess;
     FRuntime : TPSExec;
     FRuntimeFree: Boolean;
@@ -88,6 +90,7 @@ type
     function InternalDirectoryExists(Const Directory : String) : Boolean;
 
     procedure InternalExec(cmd : string);
+    procedure InternalExecAndWatch(cmd : string;OnWriteln : TWriteStringEvent);
     procedure InternalExecWrite(cmd : string);
     function InternalExecActive: Boolean;
     function InternalExecResult: Integer;
@@ -484,7 +487,9 @@ begin
       end
     else if lowercase(Name)='exec' then
       begin
+        Comp.AddTypeS('TWriteStringEvent', 'procedure (Sender: TObject;s : string)');
         AddMethod(Self,@TPascalScript.InternalExec,'procedure Exec(cmd : string);');
+        AddMethod(Self,@TPascalScript.InternalExecAndWatch,'procedure ExecAndWatch(cmd : string;OnWriteln : TWriteStringEvent);');
         AddMethod(Self,@TPascalScript.InternalExecWrite,'procedure ExecWrite(cmd : string);');
         AddMethod(Self,@TPascalScript.InternalExecActive,'function ExecActive : Boolean;');
         AddMethod(Self,@TPascalScript.InternalExecResult,'function ExecResult : Integer;');
@@ -680,6 +685,7 @@ var
 begin
   FProcess.CommandLine:=cmd;
   FProcess.Options:=[poUsePipes,poStderrToOutPut];
+  FExecWriteString := nil;
   FProcess.ShowWindow:=swoHIDE;
   {$ifdef lcl}
   FProcess.PipeBufferSize:=1;
@@ -693,6 +699,33 @@ begin
         aLine := 'Error:'+e.Message;
         if Assigned(FRuntime) then
           FRuntime.RunProcPN([aLine],'EXECLINERECEIVED');
+      end;
+  end;
+end;
+
+procedure TPascalScript.InternalExecAndWatch(cmd: string;
+  OnWriteln: TWriteStringEvent);
+var
+  aLine: String;
+begin
+  FProcess.CommandLine:=cmd;
+  FProcess.Options:=[poUsePipes,poStderrToOutPut];
+  FProcess.ShowWindow:=swoHIDE;
+  FExecWriteString := OnWriteln;
+  {$ifdef lcl}
+  FProcess.PipeBufferSize:=1;
+  {$endif}
+  CompleteOutput:='';
+  try
+    FProcess.Execute;
+  except
+    on e : exception do
+      begin
+        aLine := 'Error:'+e.Message;
+        if Assigned(FRuntime) then
+          FRuntime.RunProcPN([aLine],'EXECLINERECEIVED');
+        if Assigned(FExecWriteString) then
+          FExecWriteString(Self,aLine);
       end;
   end;
 end;
@@ -724,6 +757,8 @@ begin
       aLine := copy(CompleteOutput,0,pos(#10,CompleteOutput)-1);
       if Assigned(FRuntime) then
         FRuntime.RunProcPN([aLine],'EXECLINERECEIVED');
+      if Assigned(FExecWriteString) then
+        FExecWriteString(Self,aLine);
       CompleteOutput:=copy(CompleteOutput,pos(#10,CompleteOutput)+1,length(CompleteOutput));
     end;
 end;
