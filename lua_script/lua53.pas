@@ -106,11 +106,13 @@ unit lua53;
 
 interface
 
+uses dynlibs;
+
 const
 {$IFDEF MSWINDOWS}
-   LUA_LIB_NAME = 'lua53.dll';
+   LUA_LIB_NAME = 'lua53';
 {$ELSE}
-   LUA_LIB_NAME = 'liblua53.so';
+   LUA_LIB_NAME = 'liblua53';
    {$linklib dl}
 {$ENDIF}
 
@@ -879,28 +881,42 @@ begin
    luaL_setfuncs(L, lr, 0);
 end;
 
-function luaL_gsub(L: Plua_State; const s, p, r: PAnsiChar): PAnsiChar; cdecl; external LUA_LIB_NAME;
-function luaL_getsubtable(L: Plua_State; idx: Integer; const fname: PAnsiChar): Integer; cdecl; external LUA_LIB_NAME;
-function luaL_newstate: Plua_State; cdecl; external LUA_LIB_NAME;
-function luaL_len(L: Plua_State; idx: Integer): lua_Integer; cdecl; external LUA_LIB_NAME;
+type
+  tluaL_gsub = function(L: Plua_State; const s, p, r: PAnsiChar): PAnsiChar; cdecl;
+  tluaL_getsubtable = function(L: Plua_State; idx: Integer; const fname: PAnsiChar): Integer; cdecl;
+  tluaL_newstate = function : Plua_State; cdecl;
+  tluaL_len = function(L: Plua_State; idx: Integer): lua_Integer; cdecl;
 
-function luaopen_base(L: Plua_State): Integer; cdecl; external LUA_LIB_NAME;
-function luaopen_coroutine(L: Plua_State): Integer; cdecl; external LUA_LIB_NAME;
-function luaopen_table(L: Plua_State): Integer; cdecl; external LUA_LIB_NAME;
-function luaopen_io(L: Plua_State): Integer; cdecl; external LUA_LIB_NAME;
-function luaopen_os(L: Plua_State): Integer; cdecl; external LUA_LIB_NAME;
-function luaopen_string(L: Plua_State): Integer; cdecl; external LUA_LIB_NAME;
-function luaopen_utf8(L: Plua_State): Integer; cdecl; external LUA_LIB_NAME;
-function luaopen_bit32(L: Plua_State): Integer; cdecl; external LUA_LIB_NAME;
-function luaopen_math(L: Plua_State): Integer; cdecl; external LUA_LIB_NAME;
-function luaopen_debug(L: Plua_State): Integer; cdecl; external LUA_LIB_NAME;
-function luaopen_package(L: Plua_State): Integer; cdecl; external LUA_LIB_NAME;
-procedure luaL_openlibs(L: Plua_State); cdecl; external LUA_LIB_NAME;
+  tluaopen_base = function(L: Plua_State): Integer; cdecl;
+  tluaopen_coroutine = function(L: Plua_State): Integer; cdecl;
+  tluaopen_table = function(L: Plua_State): Integer; cdecl;
+  tluaopen_io = function(L: Plua_State): Integer; cdecl;
+  tluaopen_os = function(L: Plua_State): Integer; cdecl;
+  tluaopen_string = function(L: Plua_State): Integer; cdecl;
+  tluaopen_utf8 = function(L: Plua_State): Integer; cdecl;
+  tluaopen_bit32 = function(L: Plua_State): Integer; cdecl;
+  tluaopen_math = function(L: Plua_State): Integer; cdecl;
+  tluaopen_debug = function(L: Plua_State): Integer; cdecl;
+  tluaopen_package = function(L: Plua_State): Integer; cdecl;
+  tluaL_openlibs = procedure(L: Plua_State); cdecl;
+
+var
+  LuaLib: TLibHandle;
+
+function LoadDynLib : Boolean;
+begin
+  if not (LuaLib=NilHandle) then
+    LuaLib := LoadLibrary(LUA_LIB_NAME + '.' + SharedSuffix);
+  if not (LuaLib=NilHandle) then
+    begin
+    end;
+end;
 
 initialization
 {$IFDEF MSWINDOWS}
    Set8087CW($133F);  // disable all floating-point exceptions
 {$ENDIF}
+  LoadDynLib;
 
 (******************************************************************************
 * Copyright (C) 1994-2015 Lua.org, PUC-Rio.

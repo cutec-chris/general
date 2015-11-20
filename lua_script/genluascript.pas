@@ -35,6 +35,9 @@ type
     function Execute(aParameters: Variant;Debug : Boolean = false): Boolean; override;
   end;
 
+var
+  FScript : TLuaScript;
+
 implementation
 
 function TLuaScript.GetTyp: string;
@@ -42,13 +45,21 @@ begin
   Result := 'Lua';
 end;
 
+procedure LuaLineInfo(L : Plua_State;ar : Plua_Debug);cdecl;
+begin
+  if Assigned(FScript) and Assigned(FScript.OnRunLine) then
+    FScript.OnRunLine(FScript,'',ar^.currentline,ar^.currentline,0);
+end;
+
 function TLuaScript.Execute(aParameters: Variant; Debug: Boolean): Boolean;
 var
   L: Plua_State;
   res: integer;
 begin
+  FScript := Self;
   Result := False;
   L := luaL_newstate();
+  lua_sethook(L, @LuaLineInfo, LUA_MASKLINE, 0);
   luaL_openlibs(L);
   res := luaL_dostring(L,PChar(Source));
   Result := res=0;
