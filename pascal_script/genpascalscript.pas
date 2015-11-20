@@ -698,7 +698,8 @@ begin
       begin
         aLine := 'Error:'+e.Message;
         if Assigned(FRuntime) then
-          FRuntime.RunProcPN([aLine],'EXECLINERECEIVED');
+          if FRuntime.GetProc('EXECLINERECEIVED') <> InvalidVal then
+            FRuntime.RunProcPN([aLine],'EXECLINERECEIVED');
       end;
   end;
 end;
@@ -723,7 +724,8 @@ begin
       begin
         aLine := 'Error:'+e.Message;
         if Assigned(FRuntime) then
-          FRuntime.RunProcPN([aLine],'EXECLINERECEIVED');
+          if FRuntime.GetProc('EXECLINERECEIVED')<>InvalidVal then
+            FRuntime.RunProcPN([aLine],'EXECLINERECEIVED');
         if Assigned(FExecWriteString) then
           FExecWriteString(Self,aLine);
       end;
@@ -756,7 +758,8 @@ begin
     begin
       aLine := copy(CompleteOutput,0,pos(#10,CompleteOutput)-1);
       if Assigned(FRuntime) then
-        FRuntime.RunProcPN([aLine],'EXECLINERECEIVED');
+        if FRuntime.GetProc('EXECLINERECEIVED')<>InvalidVal then
+          FRuntime.RunProcPN([aLine],'EXECLINERECEIVED');
       if Assigned(FExecWriteString) then
         FExecWriteString(Self,aLine);
       CompleteOutput:=copy(CompleteOutput,pos(#10,CompleteOutput)+1,length(CompleteOutput));
