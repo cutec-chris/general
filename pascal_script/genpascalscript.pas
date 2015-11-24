@@ -145,12 +145,6 @@ type
     procedure OpenTool(aName : string);
   end;
 
-  TUniStringList = class(TStringList)
-  public
-    procedure SaveToFile(const FileName: string); override;
-    procedure LoadFromFile(const FileName: string); override;
-  end;
-
 type
   TScriptSleepFunction = procedure (aTime : LongInt); StdCall;
 var
@@ -356,16 +350,6 @@ begin
     ActRuntime.OnIdle(ActRuntime);
 end;
 
-procedure TUniStringList.SaveToFile(const FileName: string);
-begin
-  inherited SaveToFile(UniToSys(FileName));
-end;
-
-procedure TUniStringList.LoadFromFile(const FileName: string);
-begin
-  inherited LoadFromFile(UniToSys(FileName));
-end;
-
 function TPascalScript.InternalFindFirst(const FileName: String; var FindRec: TInternalFindRec): Boolean;
 begin
   try
@@ -445,19 +429,8 @@ begin
       end
     else if lowercase(Name)='classes' then
       begin
-        uPSC_classes.SIRegister_Classes(Comp,false);
-        uPSR_classes.RIRegister_Classes(FClassImporter,false);
-        with Comp.FindClass('TStringList') do
-          begin
-            RegisterMethod('procedure SaveToFile(const FileName: string);');
-            RegisterMethod('procedure LoadFromFile(const FileName: string);');
-          end;
-        //TODO:use TUniStringList to ensure that we can use UTF8 Filenames
-        with FClassImporter.FindClass('TStringList') do
-          begin
-            RegisterVirtualMethod(@TStringList.LoadFromFile,'LOADFROMFILE');
-            RegisterVirtualMethod(@TStringList.SaveToFile,'SAVETOFILE');
-          end;
+        uPSC_classes.SIRegister_Classes(Comp,true);
+        uPSR_classes.RIRegister_Classes(FClassImporter,true);
       end
     else if lowercase(Name)='sysutils' then
       begin
@@ -954,6 +927,7 @@ begin
   FProcess := TProcess.Create(nil);
   FProcess.ShowWindow:=swoNone;
   FCompiler:= TIPSPascalCompiler.Create;
+  FCompiler.AllowUnit:=True;
   FCompilerFree:=True;
   FRuntime:= TPSExec.Create;
   FRuntimeFree := True;
@@ -970,6 +944,7 @@ begin
   end;
   FCompiler:=AValue;
   FCompilerFree := False;
+  FCompiler.AllowUnit:=True;
 end;
 procedure TPascalScript.SetClassImporter(AValue: TPSRuntimeClassImporter);
 begin
