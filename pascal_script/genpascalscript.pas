@@ -91,6 +91,8 @@ type
 
     procedure InternalExec(cmd : string);
     procedure InternalExecAndWatch(cmd : string;OnWriteln : TWriteStringEvent);
+    procedure InternalVisualExec(cmd : string);
+    procedure InternalVisualExecAndWatch(cmd : string;OnWriteln : TWriteStringEvent);
     procedure InternalExecWrite(cmd : string);
     function InternalExecActive: Boolean;
     function InternalExecResult: Integer;
@@ -463,6 +465,8 @@ begin
         Comp.AddTypeS('TWriteStringEvent', 'procedure (Sender: TObject;s : string)');
         AddMethod(Self,@TPascalScript.InternalExec,'procedure Exec(cmd : string);');
         AddMethod(Self,@TPascalScript.InternalExecAndWatch,'procedure ExecAndWatch(cmd : string;OnWriteln : TWriteStringEvent);');
+        AddMethod(Self,@TPascalScript.InternalVisualExec,'procedure ExecVisual(cmd : string);');
+        AddMethod(Self,@TPascalScript.InternalVisualExecAndWatch,'procedure ExecVisualAndWatch(cmd : string;OnWriteln : TWriteStringEvent);');
         AddMethod(Self,@TPascalScript.InternalExecWrite,'procedure ExecWrite(cmd : string);');
         AddMethod(Self,@TPascalScript.InternalExecActive,'function ExecActive : Boolean;');
         AddMethod(Self,@TPascalScript.InternalExecResult,'function ExecResult : Integer;');
@@ -685,6 +689,57 @@ begin
   FProcess.CommandLine:=cmd;
   FProcess.Options:=[poUsePipes,poStderrToOutPut];
   FProcess.ShowWindow:=swoHIDE;
+  FExecWriteString := OnWriteln;
+  {$ifdef lcl}
+  FProcess.PipeBufferSize:=1;
+  {$endif}
+  CompleteOutput:='';
+  try
+    FProcess.Execute;
+  except
+    on e : exception do
+      begin
+        aLine := 'Error:'+e.Message;
+        if Assigned(FRuntime) then
+          if FRuntime.GetProc('EXECLINERECEIVED')<>InvalidVal then
+            FRuntime.RunProcPN([aLine],'EXECLINERECEIVED');
+        if Assigned(FExecWriteString) then
+          FExecWriteString(Self,aLine);
+      end;
+  end;
+end;
+
+procedure TPascalScript.InternalVisualExec(cmd: string);
+var
+  aLine: String;
+begin
+  FProcess.CommandLine:=cmd;
+  FProcess.Options:=[poUsePipes,poStderrToOutPut];
+  FExecWriteString := nil;
+  {$ifdef lcl}
+  FProcess.PipeBufferSize:=1;
+  {$endif}
+  CompleteOutput:='';
+  try
+    FProcess.Execute;
+  except
+    on e : exception do
+      begin
+        aLine := 'Error:'+e.Message;
+        if Assigned(FRuntime) then
+          if FRuntime.GetProc('EXECLINERECEIVED') <> InvalidVal then
+            FRuntime.RunProcPN([aLine],'EXECLINERECEIVED');
+      end;
+  end;
+end;
+
+procedure TPascalScript.InternalVisualExecAndWatch(cmd: string;
+  OnWriteln: TWriteStringEvent);
+var
+  aLine: String;
+begin
+  FProcess.CommandLine:=cmd;
+  FProcess.Options:=[poUsePipes,poStderrToOutPut];
   FExecWriteString := OnWriteln;
   {$ifdef lcl}
   FProcess.PipeBufferSize:=1;
