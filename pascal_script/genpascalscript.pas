@@ -617,7 +617,7 @@ begin
                         NewLib.Name:=Name;
                         NewLib.Code:=StringReplace(sProc,'%dllpath%',aLibName,[rfReplaceAll]);
                         LoadedLibs.Add(NewLib);
-                        Result := Comp.Compile(sProc);
+                        Result := Comp.Compile(NewLib.Code);
                       end;
                   end;
                 aProc := aprocT(dynlibs.GetProcAddress(aLib,'ScriptTool'));
@@ -1001,7 +1001,8 @@ begin
   aDir := GetCurrentDir;
   SetCurrentDir(GetHomeDir);
   Parameters:=aParameters;
-  if ByteCode='' then Result := Compile
+  if ByteCode='' then
+    Result := Compile
   else Result := True;
   Results:='';
   for i:= 0 to Compiler.MsgCount - 1 do
@@ -1093,12 +1094,15 @@ begin
       if Assigned(OnCompileMessage) then OnCompileMessage(Self,aMsg.UnitName,Compiler.Msg[i].MessageToString,Compiler.Msg[i].Pos,Compiler.Msg[i].Row,Compiler.Msg[i].Col);
     end;
   Runtime.Clear;
-  Result:= Result and FRuntime.LoadData(Bytecode);
   if FRuntime is TPSDebugExec then
     begin
       Compiler.GetDebugOutput(aDebugData);
+      result := TPSDebugExec(FRuntime).LoadData(Bytecode);
       TPSDebugExec(FRuntime).LoadDebugData(aDebugData);
-    end;
+      Result := True;
+    end
+  else
+    Result:= Result and FRuntime.LoadData(Bytecode);
 end;
 
 function TPascalScript.Stop: Boolean;
