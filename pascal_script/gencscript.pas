@@ -46,8 +46,6 @@ end;
 
 procedure TCScript.Init;
 begin
-  Process := TProcess.Create(nil);
-  Process.ShowWindow:=swoNone;
   Compiler:= TPSOCCompiler.Create;
   Runtime:= TPSExec.Create;
   ClassImporter:= TPSRuntimeClassImporter.CreateAndRegister(Runtime, false);

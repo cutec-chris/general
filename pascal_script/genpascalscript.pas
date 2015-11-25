@@ -70,7 +70,7 @@ type
     FExecStep: TNotifyEvent;
     FOnUses: TPascalOnUses;
     FExecWriteString : TWriteStringEvent;
-    FProcess: TProcess;
+    FProcesses: TList;
     FRuntime : TPSExec;
     FRuntimeFree: Boolean;
     FCompiler: TIPSPascalCompiler;
@@ -89,14 +89,14 @@ type
     procedure InternalMkDir(Directory : string);
     function InternalDirectoryExists(Const Directory : String) : Boolean;
 
-    procedure InternalExec(cmd : string);
-    procedure InternalExecAndWatch(cmd : string;OnWriteln : TWriteStringEvent);
-    procedure InternalVisualExec(cmd : string);
-    procedure InternalVisualExecAndWatch(cmd : string;OnWriteln : TWriteStringEvent);
-    procedure InternalExecWrite(cmd : string);
-    function InternalExecActive: Boolean;
-    function InternalExecResult: Integer;
-    function InternalKill: Boolean;
+    function InternalExec(cmd : string) : Integer;
+    function InternalExecAndWatch(cmd : string;OnWriteln : TWriteStringEvent) : Integer;
+    function InternalVisualExec(cmd : string) : Integer;
+    function InternalVisualExecAndWatch(cmd : string;OnWriteln : TWriteStringEvent) : Integer;
+    procedure InternalExecWrite(Pid : Integer;cmd : string);
+    function InternalExecActive(Pid : Integer): Boolean;
+    function InternalExecResult(Pid : Integer): Integer;
+    function InternalKill(Pid : Integer): Boolean;
     procedure InternalBeep;
     procedure InternalSleep(MiliSecValue: LongInt);virtual;
 
@@ -122,7 +122,6 @@ type
     function InternalUses(Comp : TPSPascalCompiler;Name : string) : Boolean;virtual;
     function Execute(aParameters: Variant;Debug : Boolean = false): Boolean; override;
     property Runtime : TPSExec read FRuntime write SetRuntime;
-    property Process : TProcess read FProcess write FProcess;
     property ClassImporter : TPSRuntimeClassImporter read FClassImporter write SetClassImporter;
     property Compiler : TIPSPascalCompiler read FCompiler write SetCompiler;
     function AddMethodEx(Slf, Ptr: Pointer; const Decl: tbtstring; CallingConv: uPSRuntime.TPSCallingConvention): Boolean;
@@ -463,14 +462,14 @@ begin
     else if lowercase(Name)='exec' then
       begin
         Comp.AddTypeS('TWriteStringEvent', 'procedure (Sender: TObject;s : string)');
-        AddMethod(Self,@TPascalScript.InternalExec,'procedure Exec(cmd : string);');
-        AddMethod(Self,@TPascalScript.InternalExecAndWatch,'procedure ExecAndWatch(cmd : string;OnWriteln : TWriteStringEvent);');
-        AddMethod(Self,@TPascalScript.InternalVisualExec,'procedure ExecVisual(cmd : string);');
-        AddMethod(Self,@TPascalScript.InternalVisualExecAndWatch,'procedure ExecVisualAndWatch(cmd : string;OnWriteln : TWriteStringEvent);');
-        AddMethod(Self,@TPascalScript.InternalExecWrite,'procedure ExecWrite(cmd : string);');
-        AddMethod(Self,@TPascalScript.InternalExecActive,'function ExecActive : Boolean;');
-        AddMethod(Self,@TPascalScript.InternalExecResult,'function ExecResult : Integer;');
-        AddMethod(Self,@TPascalScript.InternalKill,'function Kill : Boolean;');
+        AddMethod(Self,@TPascalScript.InternalExec,'function Exec(cmd : string) : Integer;');
+        AddMethod(Self,@TPascalScript.InternalExecAndWatch,'function ExecAndWatch(cmd : string;OnWriteln : TWriteStringEvent) : Integer;');
+        AddMethod(Self,@TPascalScript.InternalVisualExec,'function ExecVisual(cmd : string) : Integer;');
+        AddMethod(Self,@TPascalScript.InternalVisualExecAndWatch,'function ExecVisualAndWatch(cmd : string;OnWriteln : TWriteStringEvent) : Integer;');
+        AddMethod(Self,@TPascalScript.InternalExecWrite,'procedure ExecWrite(Pid : Integer;cmd : string);');
+        AddMethod(Self,@TPascalScript.InternalExecActive,'function ExecActive(Pid : Integer) : Boolean;');
+        AddMethod(Self,@TPascalScript.InternalExecResult,'function ExecResult(Pid : Integer) : Integer;');
+        AddMethod(Self,@TPascalScript.InternalKill,'function Kill(Pid : Integer) : Boolean;');
       end
     else if lowercase(Name)='net' then
       begin
@@ -656,10 +655,13 @@ constructor TLoadedLib.Create;
 begin
   Handle:=0;
 end;
-procedure TPascalScript.InternalExec(cmd: string);
+function TPascalScript.InternalExec(cmd: string): Integer;
 var
   aLine: String;
+  FProcess: TProcess;
 begin
+  FProcess := TProcess.Create(nil);
+  Result := FProcesses.Add(FProcess);
   FProcess.CommandLine:=cmd;
   FProcess.Options:=[poUsePipes,poStderrToOutPut];
   FExecWriteString := nil;
@@ -681,11 +683,14 @@ begin
   end;
 end;
 
-procedure TPascalScript.InternalExecAndWatch(cmd: string;
-  OnWriteln: TWriteStringEvent);
+function TPascalScript.InternalExecAndWatch(cmd: string;
+  OnWriteln: TWriteStringEvent): Integer;
 var
   aLine: String;
+  FProcess: TProcess;
 begin
+  FProcess := TProcess.Create(nil);
+  Result := FProcesses.Add(FProcess);
   FProcess.CommandLine:=cmd;
   FProcess.Options:=[poUsePipes,poStderrToOutPut];
   FProcess.ShowWindow:=swoHIDE;
@@ -709,12 +714,16 @@ begin
   end;
 end;
 
-procedure TPascalScript.InternalVisualExec(cmd: string);
+function TPascalScript.InternalVisualExec(cmd: string): Integer;
 var
   aLine: String;
+  FProcess: TProcess;
 begin
+  FProcess := TProcess.Create(nil);
+  Result := FProcesses.Add(FProcess);
   FProcess.CommandLine:=cmd;
   FProcess.Options:=[poUsePipes,poStderrToOutPut];
+  FProcess.ShowWindow:=swoShow;
   FExecWriteString := nil;
   {$ifdef lcl}
   FProcess.PipeBufferSize:=1;
@@ -733,13 +742,17 @@ begin
   end;
 end;
 
-procedure TPascalScript.InternalVisualExecAndWatch(cmd: string;
-  OnWriteln: TWriteStringEvent);
+function TPascalScript.InternalVisualExecAndWatch(cmd: string;
+  OnWriteln: TWriteStringEvent): Integer;
 var
   aLine: String;
+  FProcess: TProcess;
 begin
+  FProcess := TProcess.Create(nil);
+  Result := FProcesses.Add(FProcess);
   FProcess.CommandLine:=cmd;
   FProcess.Options:=[poUsePipes,poStderrToOutPut];
+  FProcess.ShowWindow:=swoShow;
   FExecWriteString := OnWriteln;
   {$ifdef lcl}
   FProcess.PipeBufferSize:=1;
@@ -760,45 +773,66 @@ begin
   end;
 end;
 
-procedure TPascalScript.InternalExecWrite(cmd: string);
+procedure TPascalScript.InternalExecWrite(Pid: Integer; cmd: string);
+var
+  FProcess: TProcess = nil;
 begin
+  if FProcesses.Count>Pid then
+    FProcess := TProcess(FProcesses[Pid]);
   if Assigned(FProcess) and FProcess.Active then
     FProcess.Input.WriteAnsiString(cmd);
 end;
 
-function TPascalScript.InternalExecActive : Boolean;
+function TPascalScript.InternalExecActive(Pid: Integer): Boolean;
 var
   ReadSize: LongInt;
   Buffer : string;
   ReadCount: LongInt;
   aLine: String;
+  FProcess: TProcess = nil;
 begin
+  if FProcesses.Count>Pid then
+    FProcess := TProcess(FProcesses[Pid]);
   Result := Assigned(FProcess) and FProcess.Active;
-  ReadSize := FProcess.Output.NumBytesAvailable;
-  while ReadSize>0 do
+  if Assigned(FProcess) then
     begin
-      Setlength(Buffer,ReadSize);
-      ReadCount := FProcess.Output.Read(Buffer[1], ReadSize);
-      CompleteOutput:=CompleteOutput+SysToUni(copy(Buffer,0,ReadCount));
       ReadSize := FProcess.Output.NumBytesAvailable;
+      while ReadSize>0 do
+        begin
+          Setlength(Buffer,ReadSize);
+          ReadCount := FProcess.Output.Read(Buffer[1], ReadSize);
+          CompleteOutput:=CompleteOutput+SysToUni(copy(Buffer,0,ReadCount));
+          ReadSize := FProcess.Output.NumBytesAvailable;
+        end;
+      while pos(#10,CompleteOutput)>0 do
+        begin
+          aLine := copy(CompleteOutput,0,pos(#10,CompleteOutput)-1);
+          if Assigned(FRuntime) then
+            if FRuntime.GetProc('EXECLINERECEIVED')<>InvalidVal then
+              FRuntime.RunProcPN([aLine],'EXECLINERECEIVED');
+          if Assigned(FExecWriteString) then
+            FExecWriteString(Self,aLine);
+          CompleteOutput:=copy(CompleteOutput,pos(#10,CompleteOutput)+1,length(CompleteOutput));
+        end;
     end;
-  while pos(#10,CompleteOutput)>0 do
+end;
+function TPascalScript.InternalExecResult(Pid: Integer): Integer;
+var
+  FProcess: TProcess = nil;
+begin
+  Result := -1;
+  if FProcesses.Count>Pid then
     begin
-      aLine := copy(CompleteOutput,0,pos(#10,CompleteOutput)-1);
-      if Assigned(FRuntime) then
-        if FRuntime.GetProc('EXECLINERECEIVED')<>InvalidVal then
-          FRuntime.RunProcPN([aLine],'EXECLINERECEIVED');
-      if Assigned(FExecWriteString) then
-        FExecWriteString(Self,aLine);
-      CompleteOutput:=copy(CompleteOutput,pos(#10,CompleteOutput)+1,length(CompleteOutput));
+      FProcess := TProcess(FProcesses[Pid]);
+      Result := FProcess.ExitStatus;
     end;
 end;
-function TPascalScript.InternalExecResult: Integer;
+function TPascalScript.InternalKill(Pid: Integer): Boolean;
+var
+  FProcess: TProcess = nil;
 begin
-  Result := FProcess.ExitStatus;
-end;
-function TPascalScript.InternalKill : Boolean;
-begin
+  if FProcesses.Count>Pid then
+    FProcess := TProcess(FProcesses[Pid]);
   Result := Assigned(FProcess);
   if Result then
     begin
@@ -808,8 +842,8 @@ begin
       {$endif}
       if FProcess.Running then
         FProcess.Terminate(0);
-      while FProcess.Running do InternalExecActive;
-      InternalExecActive;
+      while FProcess.Running do InternalExecActive(Pid);
+      InternalExecActive(Pid);
     end;
 end;
 procedure TPascalScript.InternalBeep;
@@ -979,8 +1013,7 @@ end;
 
 procedure TPascalScript.Init;
 begin
-  FProcess := TProcess.Create(nil);
-  FProcess.ShowWindow:=swoNone;
+  FProcesses := TList.Create;
   FCompiler:= TIPSPascalCompiler.Create;
   FCompiler.AllowUnit:=True;
   FCompilerFree:=True;
@@ -1078,7 +1111,8 @@ begin
             if Assigned(OnCompileMessage) then OnCompileMessage(Self,'',TIFErrorToString(Runtime.ExceptionCode, Runtime.ExceptionString),Runtime.ExceptionPos,0,0);
             ByteCode:='';//recompile on unsuccesful execution
           end;
-        if FProcess.Running then InternalKill;
+        for i := 0 to FProcesses.Count-1 do
+          InternalKill(i);
       except
         on e : Exception do
           begin
@@ -1281,14 +1315,24 @@ begin
 end;
 
 destructor TPascalScript.Destroy;
+var
+  i: Integer;
+  aProc: TProcess;
 begin
-  if Assigned(FProcess) then
+  if Assigned(FProcesses) then
     begin
-      if Assigned(FProcess) then
-        FreeAndNil(FProcess);
-      if Assigned(FRuntime) and FRuntimeFree then
-        FRuntime.Stop;
+      for i := 0 to FProcesses.Count-1 do
+        if Assigned(FProcesses[i]) then
+          begin
+            aProc := TProcess(FProcesses[i]);
+            aProc.Free;
+            FProcesses[i]:=nil;
+          end;
+      FProcesses.Clear;
+      FreeAndNil(FProcesses);
     end;
+  if Assigned(FRuntime) and FRuntimeFree then
+    FRuntime.Stop;
   if FCompilerFree then
     FCompiler.Free;
   if FRuntimeFree then
