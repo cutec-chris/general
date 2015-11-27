@@ -138,6 +138,7 @@ type
     function Resume: Boolean; override;
     function Pause: Boolean; override;
     function IsRunning: Boolean; override;
+    function RunScriptFunction(const Params: array of Variant;fName : string): Variant; override;
     function GetVarContents(Identifier: string): string;override;
     constructor Create;override;
     destructor Destroy; override;
@@ -1252,6 +1253,22 @@ end;
 function TPascalScript.IsRunning: Boolean;
 begin
   Result:=(Status=ssRunning) or (Status=ssPaused);
+end;
+
+function TPascalScript.RunScriptFunction(const Params: array of Variant;fName : string): Variant;
+var
+  tmp: TbtString;
+begin
+  try
+    Result := Runtime.RunProcPN(Params,fName);
+  except
+    on e : Exception do
+      begin
+        tmp:= PSErrorToString(Runtime.LastEx, '');
+        tmp:= tmp+LineEnding+TIFErrorToString(Runtime.ExceptionCode, Runtime.ExceptionString)+' '+IntToStr(Runtime.ExceptionPos);
+        raise Exception.Create(tmp);
+      end;
+  end;
 end;
 
 function TPascalScript.GetVarContents(Identifier: string): string;
