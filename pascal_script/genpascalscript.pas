@@ -1264,8 +1264,7 @@ begin
   except
     on e : Exception do
       begin
-        tmp:= PSErrorToString(Runtime.LastEx, '');
-        tmp:= tmp+LineEnding+TIFErrorToString(Runtime.ExceptionCode, Runtime.ExceptionString)+' '+IntToStr(Runtime.ExceptionPos);
+        tmp:= TIFErrorToString(Runtime.ExceptionCode, Runtime.ExceptionString)+' '+IntToStr(Runtime.ExceptionPos);
         raise Exception.Create(tmp);
       end;
   end;
