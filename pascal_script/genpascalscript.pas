@@ -160,7 +160,7 @@ implementation
 
 uses httpsend,ssl_openssl
   {$ifdef WINDOWS}
-  ,Windows
+  ,Windows,mmsystem
   {$endif}
   {$ifdef UNIX}
   ,BaseUnix
@@ -1370,8 +1370,16 @@ begin
       end;
 end;
 
+procedure ScriptBeep;
+begin
+  {$ifdef WINDOWS}
+  PlaySoundW(PWideChar('Beep'),hInstance, SND_ASYNC);
+  {$endif}
+end;
+
 initialization
   LoadedLibs := TList.Create;
+  SysUtils.OnBeep:=@ScriptBeep;
 finalization
   LoadedLibs.Clear;
   LoadedLibs.Free;
