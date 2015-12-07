@@ -88,6 +88,7 @@ type
     property UsePermissions : Boolean read GetUsePermissions write SetUsePermisions;
   end;
   IBaseManageDB = interface['{271BD4A2-2720-49DA-90A6-AA64FB2B9862}']
+  function GetAsReadonly: Boolean;
     function GetConnection: TComponent;
     function GetManagedFieldDefs: TFieldDefs;
     function GetManagedIndexDefs: TIndexDefs;
@@ -96,6 +97,7 @@ type
     function GetUpChangedBy: Boolean;
     function GetUpStdFields: Boolean;
     function GetUseIntegrity: Boolean;
+    procedure SetAsReadOnly(AValue: Boolean);
     procedure SetUpChangedBy(AValue: Boolean);
     procedure SetUpStdFields(AValue: Boolean);
     procedure SetTableCaption(const AValue: string);
@@ -111,6 +113,7 @@ type
     property UpdateStdFields : Boolean read GetUpStdFields write SetUpStdFields;
     property UpdateChangedBy : Boolean read GetUpChangedBy write SetUpChangedBy;
     property DBConnection : TComponent read GetConnection;
+    property AsReadOnly : Boolean read GetAsReadonly write SetAsReadOnly;
   end;
 
   { IBaseSubDataSets }
