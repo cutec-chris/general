@@ -795,7 +795,7 @@ begin
   if FProcesses.Count>Pid then
     FProcess := TProcess(FProcesses[Pid]);
   Result := Assigned(FProcess) and FProcess.Active;
-  if Assigned(FProcess) then
+  if Assigned(FProcess) and Assigned(FRuntime) and (FRuntime.Status=uPSRuntime.isRunning) then
     begin
       ReadSize := FProcess.Output.NumBytesAvailable;
       while ReadSize>0 do
