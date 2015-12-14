@@ -832,20 +832,23 @@ function TPascalScript.InternalKill(Pid: Integer): Boolean;
 var
   FProcess: TProcess = nil;
 begin
-  if FProcesses.Count>Pid then
-    FProcess := TProcess(FProcesses[Pid]);
-  Result := Assigned(FProcess);
-  if Result then
-    begin
-      {$ifdef UNIX}
-      FpKill(FProcess.ProcessID,SIGINT);
-      sleep(100);
-      {$endif}
-      if FProcess.Running then
-        FProcess.Terminate(0);
-      while FProcess.Running do InternalExecActive(Pid);
-      InternalExecActive(Pid);
-    end;
+  try
+    if FProcesses.Count>Pid then
+      FProcess := TProcess(FProcesses[Pid]);
+    Result := Assigned(FProcess);
+    if Result then
+      begin
+        {$ifdef UNIX}
+        FpKill(FProcess.ProcessID,SIGINT);
+        sleep(100);
+        {$endif}
+        if FProcess.Running then
+          FProcess.Terminate(0);
+        while FProcess.Running do InternalExecActive(Pid);
+        InternalExecActive(Pid);
+      end;
+  except
+  end;
 end;
 procedure TPascalScript.InternalBeep;
 begin
@@ -1112,8 +1115,11 @@ begin
             if Assigned(OnCompileMessage) then OnCompileMessage(Self,'',TIFErrorToString(Runtime.ExceptionCode, Runtime.ExceptionString),Runtime.ExceptionPos,0,0);
             ByteCode:='';//recompile on unsuccesful execution
           end;
-        for i := 0 to FProcesses.Count-1 do
-          InternalKill(i);
+        try
+          for i := 0 to FProcesses.Count-1 do
+            InternalKill(i);
+        except
+        end;
       except
         on e : Exception do
           begin
