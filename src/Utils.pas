@@ -29,6 +29,7 @@ type
 
 function ClearDir (Path: string): boolean;
 function RPos(const Substr: string; const S: string): Integer;
+function CountOccurences( const SubText: string;const Text: string): Integer;
 FUNCTION IsNumeric(s: STRING): boolean;
 FUNCTION StrTimeToValue(val : string) : LongInt;
 {$IFDEF LCL}
@@ -78,6 +79,14 @@ function CopyFile(const SrcFilename, DestFilename: string;
                   Flags: TCopyFileFlags=[cffOverwriteFile]): boolean;
 function GetTicks : Int64;
 IMPLEMENTATION
+{ Returns a count of the number of occurences of SubText in Text }
+function CountOccurences( const SubText: string;
+                          const Text: string): Integer;
+begin
+  Result := Pos(SubText, Text);
+  if Result > 0 then
+    Result := (Length(Text) - Length(StringReplace(Text, SubText, '', [rfReplaceAll]))) div  Length(subtext);
+end;
 {$IFDEF WINDOWS}
 function IsFileOpen(FileName: string): Boolean;
 var
