@@ -918,6 +918,7 @@ begin
   for i:=1 to length(str) do
     begin
       c:=str[i];
+      if c=#0 then exit;
       if c in noconvert then
         Result:=Result+c
       else
