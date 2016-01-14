@@ -37,6 +37,7 @@ type
   private
     FCompileMessage: TLineMessageEvent;
     FDWrFunc: TStrOutFunc;
+    FId: Variant;
     FIdle: TNotifyEvent;
     FParent: TObject;
     FResults: string;
@@ -45,6 +46,7 @@ type
     FSource: string;
     FStatus: char;
     FStatusChanged: TNotifyEvent;
+    FVersion: Variant;
     FWrFunc: TStrOutFunc;
     FWriFunc: TStrOutFunc;
     procedure SetStatus(AValue: char);
@@ -61,6 +63,8 @@ type
     function Execute(aParameters : Variant;Debug : Boolean = false) : Boolean;virtual;
     procedure Init;virtual;
     property Source : string read FSource write SetSource;
+    property Id : Variant read FId write FId;
+    property Version : Variant read FVersion write FVersion;
     property Status : TScriptStatus read GetStatus;
     property Results : string read FResults write FResults;
     property Write : TStrOutFunc read FWriFunc write FWriFunc;
