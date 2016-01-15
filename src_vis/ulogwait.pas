@@ -35,7 +35,6 @@ type
     lbLog: TListBox;
     procedure bAbortClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure ShowInfo(Info: string);
   private
     FAbort: Boolean;
     procedure SetBtnKind(AValue: TBitBtnKind);
@@ -43,6 +42,8 @@ type
   public
     { public declarations }
     procedure SetLanguage;
+    procedure ShowInfo(Info: string);
+    procedure Clear;
     property Abort : Boolean read FAbort;
     property AbortKind : TBitBtnKind write SetBtnKind;
   end;
@@ -64,6 +65,17 @@ begin
   lbLog.ItemIndex := lbLog.Items.Count-1;
   lbLog.MakeCurrentVisible;
   Application.Processmessages;
+end;
+
+procedure TfLogWaitForm.Clear;
+begin
+  if not Assigned(Self) then
+    begin
+      Application.CreateForm(TfLogWaitForm,fLogWaitform);
+      Self := fLogWaitForm;
+    end;
+  bAbort.Kind:=bkCancel;
+  lbLog.Clear;
 end;
 
 procedure TfLogWaitForm.SetBtnKind(AValue: TBitBtnKind);
@@ -89,8 +101,6 @@ begin
       Self := fLogWaitForm;
     end;
   FAbort:=False;
-  bAbort.Kind:=bkCancel;
-  lbLog.Items.Clear;
 end;
 
 procedure TfLogWaitForm.bAbortClick(Sender: TObject);
