@@ -117,6 +117,8 @@ type
     function InternalMathParse(Input: string): string;
     function GetTyp: string; override;
     function GetStatus: TScriptStatus; override;
+
+    function InternalGetTempDir : string;
   public
     procedure Init; override;
     function InternalUses(Comp : TPSPascalCompiler;Name : string) : Boolean;virtual;
@@ -446,6 +448,7 @@ begin
         AddMethod(Self,@TPascalScript.InternalDateTimeToStr,'function DateTimeToStr(DateTime: TDateTime): string;');
         AddMethod(Self,@TPascalScript.InternalFormat,'function Format(Fmt: string;Args: array of const):string;');
         AddMethod(Self,@TPascalScript.InternalDirectoryExists,'function DirectoryExists(Const Directory : String) : Boolean;');
+        AddMethod(Self,@TPascalScript.InternalGetTempDir,'function GetTempDir : String;');
         AddFunction(@IntToHex,'function IntToHex(Value: integer; Digits: integer) : string;');
         AddFunction(@FileExists,'function FileExists (Const FileName : String) : Boolean;');
         Comp.AddTypeS('TFindRec','record' +
@@ -1013,6 +1016,11 @@ begin
           end;
         end;
     end;
+end;
+
+function TPascalScript.InternalGetTempDir: string;
+begin
+  Result := GetTempDir;
 end;
 
 procedure TPascalScript.Init;
