@@ -776,6 +776,7 @@ var
   aPage: TTabSheet;
 begin
   Fmenu.Items.Clear;
+  ClearTabClasses;
   TabIndex:=0;
   i := 0;
   while i < Self.PageCount-1 do
