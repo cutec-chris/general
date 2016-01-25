@@ -698,7 +698,11 @@ begin
           aFrame := GetTab(aFrameClass);
           bFrame := aFrame.Controls[0];
           if Assigned(bFrame) then
-            TExtControlFrame(bFrame).DoRefresh(True);
+            begin
+              TExtControlFrame(bFrame).DoRefresh(True);
+              if Assigned(aAddFunction) then
+                aAddFunction(bFrame);
+            end;
         end;
     end
   else
