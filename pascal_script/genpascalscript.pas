@@ -450,7 +450,10 @@ begin
         AddMethod(Self,@TPascalScript.InternalDirectoryExists,'function DirectoryExists(Const Directory : String) : Boolean;');
         AddMethod(Self,@TPascalScript.InternalGetTempDir,'function GetTempDir : String;');
         AddFunction(@IntToHex,'function IntToHex(Value: integer; Digits: integer) : string;');
+        AddFunction(@GetCurrentDir,'function GetCurrentDir : string;');
+        AddFunction(@SetCurrentDir,'function SetCurrentDir ( const Dir : string ) : Boolean;');
         AddFunction(@FileExists,'function FileExists (Const FileName : String) : Boolean;');
+        AddFunction(@SysUtils.DeleteFile,'Function DeleteFile (Const FileName : String) : Boolean;');
         Comp.AddTypeS('TFindRec','record' +
                                  ' Time : TDateTime;'+
                                  ' Size : Int64;'+
