@@ -1071,7 +1071,7 @@ begin
 end;
 procedure TPascalScript.InternalMkDir(Directory: string);
 begin
-  mkdir(UniToSys(Directory));
+  CreateDir(UniToSys(Directory));
 end;
 
 function TPascalScript.InternalDirectoryExists(const Directory: String

@@ -63,7 +63,7 @@ function ConvertUnknownStringdate(input : string) : TDateTime;
 function HTMLEncodeTagless(const s: string): string;
 function HTMLEncode(const s : string)  : string;
 function HTMLDecode(const si : string)  : string;
-function UniToSys(const s: string): string; inline;
+function UniToSys(s: string): string;
 function SysToUni(const s: string): string; inline;
 function AppendPathDelim(const Path: string): string; inline;
 function FileSize(aFile : string) : Int64;
@@ -490,12 +490,10 @@ begin
   Result:=true;
 end;
 
-function UniToSys(const s: string): string;
+function UniToSys(s: string): string;
 begin
-  if NeedRTLAnsi and (not IsASCII(s)) then
-    Result:=UTF8ToAnsi(s)
-  else
-    Result:=s;
+  if GuessEncoding(s)<>GetDefaultTextEncoding then
+    Result := ConvertEncoding(s,GuessEncoding(s),GetDefaultTextEncoding);
 end;
 
 function SysToUni(const s: string): string;
