@@ -493,7 +493,7 @@ end;
 function UniToSys(const s: string): string;
 begin
   if NeedRTLAnsi and (not IsASCII(s)) then
-    Result:=UTF8ToAnsi(s)
+    Result := UTF8ToAnsi(s)
   else
     Result:=s;
 end;
