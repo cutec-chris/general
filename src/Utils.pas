@@ -493,7 +493,8 @@ end;
 function UniToSys(s: string): string;
 begin
   if GuessEncoding(s)<>GetDefaultTextEncoding then
-    Result := ConvertEncoding(s,GuessEncoding(s),GetDefaultTextEncoding);
+    Result := ConvertEncoding(s,GuessEncoding(s),GetDefaultTextEncoding)
+  else Result := s;
 end;
 
 function SysToUni(const s: string): string;
