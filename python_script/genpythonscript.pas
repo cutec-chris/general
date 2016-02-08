@@ -65,7 +65,8 @@ begin
     aScript.OnRunLine(aScript,'',0,0,0);
   if not aScript.FStopping then
     Result:=aScript.fEngine.ReturnNone
-  else Result:=nil;
+  else
+    Result:=nil;
 end;
 
 procedure TPythonScript.fInternalsInitialization(Sender: TObject);
@@ -97,10 +98,12 @@ begin
   FLines:=nil;
   FRunning:=False;
   FStopping:=False;
+  FreeAndNil(fEngine);
   fEngine := TPythonEngine.Create(nil);
   fIO := TPythonInputOutput.Create(nil);
   fIO.OnReceiveData:=@fIOReceiveData;
   fIO.OnSendData:=@fIOSendData;
+  FreeAndNil(fInternals);
   fInternals := TPythonModule.Create(nil);
   fInternals.OnInitialization:=@fInternalsInitialization;
   fInternals.ModuleName:='prometinternals';
@@ -162,8 +165,8 @@ begin
           Writeln(e.Message);
         FRunning:=False;
         FreeAndNil(FLines);
-        fEngine.Finalize;
-        fEngine.Initialize;
+        Init;
+        FStopping:=False;
       end;
   end;
 end;
