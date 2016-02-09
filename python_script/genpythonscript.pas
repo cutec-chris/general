@@ -150,7 +150,9 @@ begin
         FLines := TStringList.Create;
         FLines.Text:=Source;
         for i := 0 to FLines.Count-1 do
-          if copy(FLines[i],length(FLines[i]),1)<>':' then
+          if (copy(trim(FLines[i]),length(trim(FLines[i])),1)<>':')
+          and (trim(FLines[i])<>'')
+          then
             FLines[i] := FLines[i]+';prometinternals._CallLineInfo('+IntToStr(i)+')';
         fEngine.ExecString(FLines.Text);
         FreeAndNil(FLines);

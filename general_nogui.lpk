@@ -20,7 +20,7 @@
         </Item1>
       </BuildMacros>
     </CompilerOptions>
-    <Files Count="16">
+    <Files Count="17">
       <Item1>
         <Filename Value="src\Utils.pas"/>
         <UnitName Value="Utils"/>
@@ -85,6 +85,10 @@
         <Filename Value="src\genscript.pas"/>
         <UnitName Value="genscript"/>
       </Item16>
+      <Item17>
+        <Filename Value="src\comparewild.pas"/>
+        <UnitName Value="comparewild"/>
+      </Item17>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
