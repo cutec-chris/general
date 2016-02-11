@@ -20,8 +20,7 @@
     </Files>
     <RequiredPkgs Count="3">
       <Item1>
-        <PackageName Value="P4DLaz"/>
-        <DefaultFilename Value="..\..\promet\source\components\python4delphi\PythonForDelphi\Components\p4dlaz.lpk"/>
+        <PackageName Value="P4DFpc"/>
       </Item1>
       <Item2>
         <PackageName Value="general_nogui"/>
