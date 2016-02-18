@@ -87,6 +87,7 @@ type
   protected
     procedure InternalChDir(Directory : string);
     procedure InternalMkDir(Directory : string);
+    function InternalApplicationDir : string;
     function InternalDirectoryExists(Const Directory : String) : Boolean;
 
     function InternalExec(cmd : string) : Integer;
@@ -449,6 +450,7 @@ begin
         AddMethod(Self,@TPascalScript.InternalFormat,'function Format(Fmt: string;Args: array of const):string;');
         AddMethod(Self,@TPascalScript.InternalDirectoryExists,'function DirectoryExists(Const Directory : String) : Boolean;');
         AddMethod(Self,@TPascalScript.InternalGetTempDir,'function GetTempDir : String;');
+        AddMethod(Self,@TPascalScript.InternalApplicationDir,'function GetApplicationDir : String;');
         AddFunction(@IntToHex,'function IntToHex(Value: integer; Digits: integer) : string;');
         AddFunction(@GetCurrentDir,'function GetCurrentDir : string;');
         AddFunction(@SetCurrentDir,'function SetCurrentDir ( const Dir : string ) : Boolean;');
@@ -1072,6 +1074,11 @@ end;
 procedure TPascalScript.InternalMkDir(Directory: string);
 begin
   CreateDir(UniToSys(Directory));
+end;
+
+function TPascalScript.InternalApplicationDir: string;
+begin
+  Result := ExtractFileDir(ParamStr(0));
 end;
 
 function TPascalScript.InternalDirectoryExists(const Directory: String
