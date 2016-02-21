@@ -21,6 +21,7 @@
     <RequiredPkgs Count="3">
       <Item1>
         <PackageName Value="P4DFpc"/>
+        <DefaultFilename Value="..\..\source\components\python4delphi\PythonForDelphi\Components\P4DFpc.lpk"/>
       </Item1>
       <Item2>
         <PackageName Value="general_nogui"/>
