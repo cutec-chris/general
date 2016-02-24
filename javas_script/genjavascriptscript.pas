@@ -24,7 +24,7 @@ unit genjavascriptscript;
 interface
 
 uses
-  Classes, SysUtils, Utils ,genscript,BESEN;
+  Classes, SysUtils, Utils ,genscript;
 
 type
   { TPythonScript }

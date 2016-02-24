@@ -7,7 +7,7 @@ unit general_javascript_script;
 interface
 
 uses
-  genjavascriptscript, BESEN, LazarusPackageIntf;
+  genjavascriptscript, LazarusPackageIntf;
 
 implementation
 
