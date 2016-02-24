@@ -12,15 +12,11 @@
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)-$(LCLWidgetType)"/>
       </SearchPaths>
     </CompilerOptions>
-    <Files Count="2">
+    <Files Count="1">
       <Item1>
         <Filename Value="genjavascriptscript.pas"/>
         <UnitName Value="genjavascriptscript"/>
       </Item1>
-      <Item2>
-        <Filename Value="besen\src\besen.pas"/>
-        <UnitName Value="BESEN"/>
-      </Item2>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>
