@@ -31,6 +31,7 @@ type
 
   TJavascriptScript = class(TScript)
   private
+    Besen : TBESEN;
     FLines : TStringList;
     FRunning: Boolean;
     FStopping : Boolean;
@@ -57,9 +58,9 @@ end;
 
 procedure TJavascriptScript.Init;
 begin
-  FLines:=nil;
   FRunning:=False;
   FStopping:=False;
+  if not Assigned(Besen) then Besen := TBESEN.Create;
 end;
 
 function TJavascriptScript.IsRunning: Boolean;
@@ -93,6 +94,7 @@ begin
   try
     FRunning := True;
     //Exec
+    Besen.Execute(Source);
     FRunning:=False;
     Result := True;
   except
@@ -110,6 +112,7 @@ end;
 
 destructor TJavascriptScript.Destroy;
 begin
+  if Assigned(Besen) then FreeAndNil(Besen);
   inherited Destroy;
 end;
 
