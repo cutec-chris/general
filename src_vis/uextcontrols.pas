@@ -116,10 +116,10 @@ type
     FDownTimer : TTimer;
     FUseExtPicklist: Boolean;
   protected
+    procedure DoEnter; override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer
        ); override;
     function EditingAllowed(ACol: Integer=-1): Boolean; override;
-    procedure SelectEditor;override;
     procedure DblClick; override;
     procedure AutoAdjustColumn(aCol: Integer); override;
     procedure DrawCell(aCol,aRow:Integer; aRect:TRect; aState:TGridDrawState); override;
@@ -130,6 +130,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure SelectEditor;override;
     property UseExtPicklist : Boolean read FUseExtPicklist write FUseExtPicklist;
   published
     property OnAfterDrawCell: TOnDrawCell read FAfterDrawCell write FAfterDrawCell;
@@ -1097,8 +1098,11 @@ end;
 procedure TExtStringgrid.FDownTimerTimer(Sender: TObject);
 begin
   FDownTimer.Enabled:=False;
-  if FMouseDowns = 1 then
-    EditorMode:=True;
+  if (FMouseDowns = 1) or (OnDblClick=nil) then
+    begin
+      SelectEditor;
+      EditorMode:=True;
+    end;
   FMouseDowns:=0;
 end;
 procedure TExtStringgrid.FExtEditorExit(Sender: TObject);
@@ -1107,6 +1111,13 @@ begin
     EditorMode := false;
   TWinControl(Sender).OnExit:=nil;
 end;
+
+procedure TExtStringgrid.DoEnter;
+begin
+  inherited DoEnter;
+  FMouseDowns:=0;
+end;
+
 procedure TExtStringgrid.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
   Y: Integer);
 begin
@@ -1132,7 +1143,7 @@ end;
 function TExtStringgrid.EditingAllowed(ACol: Integer): Boolean;
 begin
   Result:=inherited EditingAllowed(ACol);
-  if (FMouseDowns > 0) and (Assigned(FDownTimer)) and (FDownTimer.Enabled)
+  if (FMouseDowns <> 2) and (Assigned(FDownTimer)) and (FDownTimer.Enabled)
   and (Col < ColCount) and (Columns[Col-1].ButtonStyle <> cbsCheckboxColumn) then
     Result := False;
 end;
