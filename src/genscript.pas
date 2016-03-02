@@ -56,6 +56,7 @@ type
     procedure InternalWriteln(const s: string);
     procedure InternalDebugln(const s: string);
     procedure InternalReadln(var s: string);
+    procedure InternalClearScreen;
     procedure SetSource(AValue: string);virtual;
     function GetStatus: TScriptStatus;virtual;
   public
@@ -100,6 +101,11 @@ type
     function Compile : Boolean;virtual;abstract;
     constructor Create;virtual;
   end;
+
+  TClearScreenProc = procedure(Sender : TObject);
+
+var
+  DoClearScreen : TClearScreenProc = nil;
 
 implementation
 
@@ -150,6 +156,12 @@ end;
 procedure TScript.InternalReadln(var s: string);
 begin
   if Assigned(FRlFunc) then FRlFunc(s);
+end;
+
+procedure TScript.InternalClearScreen;
+begin
+  if Assigned(DoClearScreen) then
+    DoClearScreen(Self);
 end;
 
 function TScript.Execute(aParameters: Variant; Debug: Boolean): Boolean;

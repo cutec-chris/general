@@ -85,6 +85,7 @@ type
     procedure SetCompiler(AValue: TIPSPascalCompiler);
     procedure SetRuntime(AValue: TPSExec);
   protected
+    FLastUnitName : string;
     procedure InternalChDir(Directory : string);
     procedure InternalMkDir(Directory : string);
     function InternalApplicationDir : string;
@@ -346,7 +347,10 @@ procedure OnSourceLine(Sender: TPSDebugExec; const Name: tbtstring; Position,
   Row, Col: Cardinal);
 begin
   if Assigned(ActRuntime) and Assigned(ActRuntime.OnRunLine) then
-    ActRuntime.OnRunLine(ActRuntime,Name,Position,Row,Col);
+    begin
+      ActRuntime.OnRunLine(ActRuntime,Name,Position,Row,Col);
+      TPascalScript(ActRuntime).FLastUnitName := Name;
+    end;
 end;
 
 procedure IdleCall(Sender: TPSDebugExec);
@@ -427,6 +431,7 @@ begin
         try
           AddMethod(Self,@TPascalScript.InternalChDir,'procedure ChDir(Dir : string);');
           AddMethod(Self,@TPascalScript.InternalMkDir,'procedure MkDir(Dir : string);');
+          AddMethod(Self,@TPascalScript.InternalClearScreen,'procedure ClearScreen;');
         except
         end;
         uPSC_std.SIRegister_Std(Comp);
@@ -1225,6 +1230,7 @@ begin
   if Assigned(FRuntime) then
     begin
       FRuntime.Stop;
+      FRuntime.Cleanup;
       Result := True;
     end;
 end;
@@ -1371,12 +1377,12 @@ begin
       FProcesses.Clear;
       FreeAndNil(FProcesses);
     end;
-  if Assigned(FRuntime) and FRuntimeFree then
-    FRuntime.Stop;
+  Pause;
+  Stop;
   if FCompilerFree then
     FCompiler.Free;
   if FRuntimeFree then
-    FRuntime.Free;
+    FreeAndNil(FRuntime);
   inherited Destroy;
 end;
 
