@@ -1143,7 +1143,7 @@ end;
 function TExtStringgrid.EditingAllowed(ACol: Integer): Boolean;
 begin
   Result:=inherited EditingAllowed(ACol);
-  if (FMouseDowns <> 2) and (Assigned(FDownTimer)) and (FDownTimer.Enabled)
+  if (((FMouseDowns > 0) and (FMouseDowns<3) and (Assigned(OnDblClick))) or ((FMouseDowns > 1) and (FMouseDowns<3) and (not Assigned(OnDblClick)))) and (Assigned(FDownTimer)) and (FDownTimer.Enabled)
   and (Col < ColCount) and (Columns[Col-1].ButtonStyle <> cbsCheckboxColumn) then
     Result := False;
 end;
