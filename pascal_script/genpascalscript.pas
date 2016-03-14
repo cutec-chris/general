@@ -1203,8 +1203,6 @@ begin
   if not Assigned(Compiler) then exit;
   CompleteOutput:='';
   Compiler.Obj := Self;
-  if Assigned(OnCheckModule) then
-    OnCheckModule(Self,Name,0,0,0);
   Compiler.OnUses:= @ExtendICompiler;
   Result:= Compiler.Compile(Source) and Compiler.GetOutput(aBytecode);
   ByteCode:=aBytecode;

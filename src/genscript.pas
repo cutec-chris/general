@@ -35,7 +35,7 @@ type
 
   TScript = class
   private
-    FCheckModule: TLineEvent;
+    FCheckModule: TNotifyEvent;
     FCompileMessage: TLineMessageEvent;
     FDWrFunc: TStrOutFunc;
     FId: Variant;
@@ -92,7 +92,7 @@ type
     property OnCompileMessage : TLineMessageEvent read FCompileMessage write FCompileMessage;
     property OnRunLine : TLineEvent read FRunLine write FRunLine;
     property OnIdle : TNotifyEvent read FIdle write FIdle;
-    property OnCheckModule : TLineEvent read FCheckModule write FCheckModule;
+    property OnCheckModule : TNotifyEvent read FCheckModule write FCheckModule;
     property ModuleStatus : TStringList read FModStatus;
   end;
   TScriptClass = class of TScript;
