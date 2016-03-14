@@ -123,7 +123,7 @@ type
     function InternalGetTempDir : string;
   public
     procedure Init; override;
-    function InternalUses(Comp : TPSPascalCompiler;Name : string) : Boolean;virtual;
+    function InternalUses(Comp : TPSPascalCompiler;cName : string) : Boolean;virtual;
     function Execute(aParameters: Variant;Debug : Boolean = false): Boolean; override;
     property Runtime : TPSExec read FRuntime write SetRuntime;
     property ClassImporter : TPSRuntimeClassImporter read FClassImporter write SetClassImporter;
@@ -393,7 +393,7 @@ procedure TPascalScript.InternalFindClose(var FindRec: TInternalFindRec);
 begin
   SysUtils.FindClose(FFindRec);
 end;
-function TPascalScript.InternalUses(Comp: TPSPascalCompiler; Name: string
+function TPascalScript.InternalUses(Comp: TPSPascalCompiler; cName: string
   ): Boolean;
 var
   aLib: TLibHandle;
@@ -426,7 +426,7 @@ var
 begin
   Result := True;
   try
-    if lowercase(Name)='system' then
+    if lowercase(cName)='system' then
       begin
         try
           AddMethod(Self,@TPascalScript.InternalChDir,'procedure ChDir(Dir : string);');
@@ -437,12 +437,12 @@ begin
         uPSC_std.SIRegister_Std(Comp);
         uPSR_std.RIRegister_Std(FClassImporter);
       end
-    else if lowercase(Name)='classes' then
+    else if lowercase(cName)='classes' then
       begin
         uPSC_classes.SIRegister_Classes(Comp,true);
         uPSR_classes.RIRegister_Classes(FClassImporter,true);
       end
-    else if lowercase(Name)='sysutils' then
+    else if lowercase(cName)='sysutils' then
       begin
         InternalUses(Comp,'DATEUTILS');
         AddMethod(Self,@TPascalScript.InternalBeep,'procedure Beep;');
@@ -473,7 +473,7 @@ begin
         AddFunction(@SysUtils.GetEnvironmentVariable,'function GetEnvironmentVariable(Const EnvVar : String) : String;');
         AddFunction(@SysUtils.GetEnvironmentVariableCount,'function GetEnvironmentVariableCount : Integer;');
       end
-    else if lowercase(Name)='exec' then
+    else if lowercase(cName)='exec' then
       begin
         Comp.AddTypeS('TWriteStringEvent', 'procedure (Sender: TObject;s : string)');
         AddMethod(Self,@TPascalScript.InternalExec,'function Exec(cmd : string) : Integer;');
@@ -485,7 +485,7 @@ begin
         AddMethod(Self,@TPascalScript.InternalExecResult,'function ExecResult(Pid : Integer) : Integer;');
         AddMethod(Self,@TPascalScript.InternalKill,'function Kill(Pid : Integer) : Boolean;');
       end
-    else if lowercase(Name)='net' then
+    else if lowercase(cName)='net' then
       begin
         AddMethod(Self,@TPascalScript.InternalHttpGet,'function HttpGet(URL : string;aTimeout : Integer) : string;');
         AddMethod(Self,@TPascalScript.InternalHttpPost,'function HttpPost(URL,Content : string;aTimeout : Integer) : string;');
@@ -496,21 +496,21 @@ begin
         AddFunction(@HTMLEncode,'function HTMLEncode(const str : String) : string;');
         AddFunction(@HTMLDecode,'function HTMLDecode(const str : String) : string;');
       end
-    else if lowercase(Name)='mashine' then
+    else if lowercase(cName)='mashine' then
       begin
         AddMethod(Self,@TPascalScript.InternalRebootMashine,'function RebootMashine : Boolean;');
         AddMethod(Self,@TPascalScript.InternalShutdownMashine,'function ShutdownMashine : Boolean;');
       end
-    else if lowercase(Name)='db' then
+    else if lowercase(cName)='db' then
       begin
         uPSC_DB.SIRegister_DB(Comp);
         uPSR_DB.RIRegister_DB(FClassImporter);
       end
-    else if lowercase(Name)='variants' then
+    else if lowercase(cName)='variants' then
       begin
         AddFunction(@VarArrayOf,'function VarArrayOf(const Values: array of Variant): Variant;');
       end
-    else if lowercase(Name)='dateutils' then
+    else if lowercase(cName)='dateutils' then
       begin
         uPSC_dateutils.RegisterDateTimeLibrary_C(Comp);
         uPSR_dateutils.RegisterDateTimeLibrary_R(Runtime);
@@ -523,12 +523,12 @@ begin
         AddFunction(@SplitRegExpr,'procedure SplitRegExpr (const ARegExpr, AInputStr : String; APieces : TStrings);');
         AddFunction(@ReplaceRegExprIfMatch,'function ReplaceRegExprIfMatch (const ARegExpr, AInputStr, AReplaceStr : String; AUseSubstitution : boolean) : String;');
       end
-    else if lowercase(Name)='mathparser' then
+    else if lowercase(cName)='mathparser' then
       begin
         InternalUses(Comp,'CLASSES');
         AddMethod(Self,@TPascalScript.InternalMathParse,'function MathParse(Input : string) : string;');
       end
-    else if lowercase(Name)='dialogs' then
+    else if lowercase(cName)='dialogs' then
       begin
         {$IF defined(LCLNOGUI)}
         Result := false;
@@ -558,11 +558,11 @@ begin
     else
       begin
         Result := False;
-        aLibName := FindLib(ExtractFilePath(ParamStr(0)),Name);
+        aLibName := FindLib(ExtractFilePath(ParamStr(0)),cName);
         if aLibName='' then
-          aLibName := FindLib(ExtractFilePath(ParamStr(0))+'scriptplugins'+DirectorySeparator,Name);
+          aLibName := FindLib(ExtractFilePath(ParamStr(0))+'scriptplugins'+DirectorySeparator,cName);
         if aLibName='' then
-          aLibName := FindLib(ExtractFilePath(ParamStr(0))+'..'+DirectorySeparator+'scriptplugins'+DirectorySeparator,Name);
+          aLibName := FindLib(ExtractFilePath(ParamStr(0))+'..'+DirectorySeparator+'scriptplugins'+DirectorySeparator,cName);
         if FileExists(aLibname) then
           begin
             if not Assigned(Comp.OnExternalProc) then
@@ -571,7 +571,7 @@ begin
             Runtime.RegisterFunctionName('UNLOADDLL', @UnloadProcInt, nil, nil);
             Runtime.RegisterFunctionName('DLLGETLASTERROR', @GetLastErrorProc, nil, nil);
             for i := 0 to LoadedLibs.Count-1 do
-              if TLoadedLib(LoadedLibs[i]).Name=Name then
+              if TLoadedLib(LoadedLibs[i]).Name=cName then
                 begin
                   bLib := TLoadedLib(LoadedLibs[i]);
                   Result := Comp.Compile(bLib.Code);
@@ -583,7 +583,7 @@ begin
                 aProc := aprocT(dynlibs.GetProcAddress(aLib,'ScriptDefinition'));
                 if Assigned(aProc) then
                   begin
-                    newUnit := 'unit '+name+';'+LineEnding+'interface'+LineEnding+'type';
+                    newUnit := 'unit '+cname+';'+LineEnding+'interface'+LineEnding+'type';
                     Procs := TStringList.Create;
                     sProc := aProc();
                     Procs.text := sProc;
@@ -617,7 +617,7 @@ begin
                       end;
                     newUnit := newUnit+LineEnding+'implementation'+lineending+'end.';
                     NewLib := TLoadedLib.Create;
-                    NewLib.Name:=Name;
+                    NewLib.Name:=cName;
                     NewLib.Code:=newUnit;
                     LoadedLibs.Add(NewLib);
                     Result := Comp.Compile(newUnit);
@@ -631,7 +631,7 @@ begin
                         newUnit := '';
                         sProc := aProc();
                         NewLib := TLoadedLib.Create;
-                        NewLib.Name:=Name;
+                        NewLib.Name:=cName;
                         NewLib.Code:=StringReplace(sProc,'%dllpath%',aLibName,[rfReplaceAll]);
                         LoadedLibs.Add(NewLib);
                         Result := Comp.Compile(NewLib.Code);
@@ -641,7 +641,7 @@ begin
                 if Assigned(aProc) then
                   begin
                     if Assigned(OnToolRegistering) then
-                      FToolRegistered(Name);
+                      FToolRegistered(cName);
                   end;
                 FreeLibrary(aLib);
               end;
@@ -658,7 +658,7 @@ begin
     end;
   end;
   if Assigned(FOnUses) then
-    Result := FOnUses(Self,Name,Result) or Result;
+    Result := FOnUses(Self,cName,Result) or Result;
 end;
 function ExtendICompiler(Sender: TPSPascalCompiler; const Name: tbtString
   ): Boolean;
@@ -1203,6 +1203,8 @@ begin
   if not Assigned(Compiler) then exit;
   CompleteOutput:='';
   Compiler.Obj := Self;
+  if Assigned(OnCheckModule) then
+    OnCheckModule(Self,Name,0,0,0);
   Compiler.OnUses:= @ExtendICompiler;
   Result:= Compiler.Compile(Source) and Compiler.GetOutput(aBytecode);
   ByteCode:=aBytecode;

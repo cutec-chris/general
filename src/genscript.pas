@@ -35,10 +35,13 @@ type
 
   TScript = class
   private
+    FCheckModule: TLineEvent;
     FCompileMessage: TLineMessageEvent;
     FDWrFunc: TStrOutFunc;
     FId: Variant;
     FIdle: TNotifyEvent;
+    FModStatus: TStringList;
+    FName: string;
     FParent: TObject;
     FResults: string;
     FRlFunc: TStrInFunc;
@@ -61,8 +64,11 @@ type
     function GetStatus: TScriptStatus;virtual;
   public
     Parameters : Variant;
+    constructor Create;
+    destructor Destroy; override;
     function Execute(aParameters : Variant;Debug : Boolean = false) : Boolean;virtual;
     procedure Init;virtual;
+    property Name : string read FName write FName;
     property Source : string read FSource write SetSource;
     property Id : Variant read FId write FId;
     property Version : Variant read FVersion write FVersion;
@@ -79,13 +85,15 @@ type
     function Resume : Boolean;virtual;
     function Stop : Boolean;virtual;
     function IsRunning : Boolean;virtual;
-    function RunScriptFunction(const Params : array of Variant;fName : string) : Variant;virtual;
+    function RunScriptFunction(const Params : array of Variant;aName : string) : Variant;virtual;
     function GetVarContents(Identifier : string) : string;virtual;
     property Parent : TObject read FParent write fParent;
     property OnStatusChanged : TNotifyEvent read FStatusChanged write FStatusChanged;
     property OnCompileMessage : TLineMessageEvent read FCompileMessage write FCompileMessage;
     property OnRunLine : TLineEvent read FRunLine write FRunLine;
     property OnIdle : TNotifyEvent read FIdle write FIdle;
+    property OnCheckModule : TLineEvent read FCheckModule write FCheckModule;
+    property ModuleStatus : TStringList read FModStatus;
   end;
   TScriptClass = class of TScript;
 
@@ -130,6 +138,17 @@ end;
 function TScript.GetStatus: TScriptStatus;
 begin
   Result := ssNone;
+end;
+
+constructor TScript.Create;
+begin
+  FModStatus := TStringList.Create;
+end;
+
+destructor TScript.Destroy;
+begin
+  FModStatus.Free;
+  inherited Destroy;
 end;
 
 procedure TScript.SetSource(AValue: string);
@@ -203,7 +222,7 @@ begin
   Result := False;
 end;
 
-function TScript.RunScriptFunction(const Params: array of Variant; fName: string
+function TScript.RunScriptFunction(const Params: array of Variant; aName: string
   ): Variant;
 begin
   Result := Null;
