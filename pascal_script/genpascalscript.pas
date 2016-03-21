@@ -27,7 +27,7 @@ uses
   Classes, SysUtils, uPSCompiler,db,
   uPSC_classes, uPSC_DB, uPSC_dateutils, uPSC_dll, uPSRuntime,
   uPSR_classes, uPSR_DB, uPSR_dateutils, uPSR_dll, uPSUtils,
-  uPSR_std,uPSC_std,uPSDebugger,
+  uPSR_std,uPSC_std,uPSDebugger,httpsend,blcksock,synautil,
   Process,usimpleprocess,Utils,variants,dynlibs,
   synamisc,RegExpr,MathParser,genscript;
 
@@ -66,6 +66,8 @@ type
 
   TPascalScript = class(TByteCodeScript)
   private
+    Fhttp: THTTPSend;
+    FSocket : TBlockSocket;
     CompleteOutput : string;
     FExecStep: TNotifyEvent;
     FOnUses: TPascalOnUses;
@@ -104,6 +106,14 @@ type
 
     function InternalHttpGet(aURL: string;aTimeout : Integer): string;
     function InternalHttpPost(aURL,Content : string;aTimeout : Integer) : string;
+    procedure InternalHttpSetMimeType(MimeType : string);
+    procedure InternalHttpSetUserAgent(UserAgent : string);
+    function InternalHttpGetResult : Integer;
+    function InternalHttpGetHeaders : string;
+    procedure InternalHttpSetHeaders(Headers : string);
+    function InternalHttpGetCookies : string;
+    procedure InternalHttpSetCookies(Headers : string);
+    procedure InternalHttpClear;
     function InternalTcpRaw(aURL,Content : string;aTimeout : Integer) : string;
     function InternalGetDNS: string;
     function InternalGetLocalIPs: string;
@@ -162,7 +172,7 @@ var
 
 implementation
 
-uses httpsend,ssl_openssl
+uses ssl_openssl
   {$ifdef WINDOWS}
   ,Windows,mmsystem
   {$endif}
@@ -489,6 +499,14 @@ begin
       begin
         AddMethod(Self,@TPascalScript.InternalHttpGet,'function HttpGet(URL : string;aTimeout : Integer) : string;');
         AddMethod(Self,@TPascalScript.InternalHttpPost,'function HttpPost(URL,Content : string;aTimeout : Integer) : string;');
+        AddMethod(Self,@TPascalScript.InternalHttpSetMimeType,'procedure HttpSetMimeType(MimeType : string);');
+        AddMethod(Self,@TPascalScript.InternalHttpSetUserAgent,'procedure HttpSetuserAgent(UserAgent : string);');
+        AddMethod(Self,@TPascalScript.InternalHttpgetResult,'function HttpGetResult : Integer;');
+        AddMethod(Self,@TPascalScript.InternalHttpClear,'procedure HttpClear;');
+        AddMethod(Self,@TPascalScript.InternalHttpGetHeaders,'function InternalHttpGetHeaders : string;');
+        AddMethod(Self,@TPascalScript.InternalHttpSetHeaders,'procedure InternalHttpSetHeaders(Headers : string);');
+        AddMethod(Self,@TPascalScript.InternalHttpGetCookies,'function InternalHttpGetCookies : string;');
+        AddMethod(Self,@TPascalScript.InternalHttpSetCookies,'procedure InternalHttpSetCookies(Headers : string);');
         AddMethod(Self,@TPascalScript.InternalTcpRaw,'function TcpRaw(URL : string;Content : string;aTimeout : Integer) : string;');
         AddMethod(Self,@TPascalScript.InternalGetDNS,'function GetDNS : string;');
         AddMethod(Self,@TPascalScript.InternalGetLocalIPs,'function GetLocalIPs : string;');
@@ -515,7 +533,7 @@ begin
         uPSC_dateutils.RegisterDateTimeLibrary_C(Comp);
         uPSR_dateutils.RegisterDateTimeLibrary_R(Runtime);
       end
-    else if lowercase(Name)='regexpr' then
+    else if lowercase(cName)='regexpr' then
       begin
         InternalUses(Comp,'CLASSES');
         AddFunction(@ExecRegExpr,'function ExecRegExpr (const ARegExpr, AInputStr : String) : boolean;');
@@ -872,43 +890,85 @@ begin
   OwnSleep(MiliSecValue);
 end;
 function TPascalScript.InternalHttpGet(aURL: string; aTimeout: Integer): string;
-var
-  ahttp: THTTPSend;
 begin
-  ahttp := THTTPSend.Create;
-  ahttp.Timeout:=aTimeout;
-  ahttp.KeepAlive:=false;
-  ahttp.HTTPMethod('GET',aURL);
-  if ahttp.ResultCode=200 then
+  Fhttp.Timeout:=aTimeout;
+  Fhttp.KeepAlive:=false;
+  Fhttp.HTTPMethod('GET',aURL);
+  if Fhttp.ResultCode=200 then
     begin
-      setlength(Result,ahttp.Document.Size);
-      ahttp.Document.Read(Result[1],ahttp.Document.Size);
+      setlength(Result,Fhttp.Document.Size);
+      Fhttp.Document.Read(Result[1],Fhttp.Document.Size);
     end
   else Result:='';
-  ahttp.Free;
 end;
 function TPascalScript.InternalHttpPost(aURL, Content: string; aTimeout: Integer
   ): string;
-var
-  ahttp: THTTPSend;
 begin
-  ahttp := THTTPSend.Create;
-  ahttp.Timeout:=aTimeout;
-  ahttp.Document.Write(Content[1],length(Content));
-  ahttp.HTTPMethod('POST',aURL);
-  if ahttp.ResultCode=200 then
+  Fhttp := THTTPSend.Create;
+  Fhttp.Timeout:=aTimeout;
+  Fhttp.Document.Write(Content[1],length(Content));
+  Fhttp.HTTPMethod('POST',aURL);
+  if Fhttp.ResultCode=200 then
     begin
-      setlength(Result,ahttp.Document.Size);
-      ahttp.Document.Read(Result[1],ahttp.Document.Size);
+      setlength(Result,Fhttp.Document.Size);
+      Fhttp.Document.Read(Result[1],Fhttp.Document.Size);
     end
   else Result:='';
-  ahttp.Free;
+end;
+
+procedure TPascalScript.InternalHttpSetMimeType(MimeType: string);
+begin
+  Fhttp.MimeType:=MimeType;
+end;
+
+procedure TPascalScript.InternalHttpSetUserAgent(UserAgent: string);
+begin
+  Fhttp.UserAgent:=UserAgent;
+end;
+
+function TPascalScript.InternalHttpGetResult: Integer;
+begin
+  Result := Fhttp.ResultCode;
+end;
+
+function TPascalScript.InternalHttpGetHeaders: string;
+begin
+  Result := Fhttp.Headers.Text;
+end;
+
+procedure TPascalScript.InternalHttpSetHeaders(Headers: string);
+begin
+  Fhttp.Headers.Text:=Headers;
+end;
+
+function TPascalScript.InternalHttpGetCookies: string;
+begin
+  Result := Fhttp.Cookies.Text;
+end;
+
+procedure TPascalScript.InternalHttpSetCookies(Headers: string);
+begin
+  Fhttp.Cookies.Text:=Headers;
+end;
+
+procedure TPascalScript.InternalHttpClear;
+begin
+  Fhttp.Clear;
 end;
 
 function TPascalScript.InternalTcpRaw(aURL, Content: string; aTimeout: Integer
   ): string;
+var
+  Prot,User,Pass,Host,Port,Path,Para: string;
 begin
-
+  synautil.ParseURL(aURL,Prot,User,Pass,Host,Port,Path,Para);
+  FSocket.ConnectionTimeout:=aTimeout;
+  FSocket.Connect(Host,Port);
+  if FSocket.LastErrorDesc<>'' then
+    Result := FSocket.LastErrorDesc;
+  FSocket.SendString(Content);
+  Result := FSocket.RecvString(aTimeout);
+  FSocket.CloseSocket;
 end;
 
 function TPascalScript.InternalGetDNS: string;
@@ -1041,6 +1101,8 @@ begin
   FCompilerFree:=True;
   FRuntime:= TPSExec.Create;
   FRuntimeFree := True;
+  FHttp := THTTPSend.Create;
+  FSocket := TBlockSocket.Create;
   FClassImporter:= TPSRuntimeClassImporter.CreateAndRegister(FRuntime, false);
 end;
 
