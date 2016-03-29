@@ -21,6 +21,7 @@ CONST
 
 type
  TStrOutFunc = procedure(const s: string) of object;
+ TStrOut2Func = procedure(const s1,s2: string) of object;
  TStrInFunc = procedure(var s: string) of object;
  TRoundToRange = -37..37;
  {$ifdef WINDOWS}
