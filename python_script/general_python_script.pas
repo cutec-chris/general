@@ -4,6 +4,7 @@
 
 unit general_python_script;
 
+{$warn 5023 off : no warning about unused units}
 interface
 
 uses

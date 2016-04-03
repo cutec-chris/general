@@ -10,7 +10,7 @@ interface
 uses
 
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Buttons,uGeneralStrConsts,LCLProc, LCLType,FileUtil,LConvEncoding;
+  Buttons,uGeneralStrConsts,LCLProc, LCLType,FileUtil,LConvEncoding,Utils;
 
 type
   { TfError }
@@ -66,10 +66,10 @@ begin
   try
     aRes := ConvertEncoding(aMessage,GuessEncoding(aMessage),EncodingUTF8);
     Result := aRes;
-    if FileExistsUTF8(AppendPathDelim(Application.Location)+aFile) then
+    if FileExists(UniToSys(AppendPathDelim(Application.Location)+aFile)) then
       begin
         sl := TStringList.Create;
-        sl.LoadFromFile(UTF8ToSys(AppendPathDelim(Application.Location)+aFile));
+        sl.LoadFromFile(UniToSys(AppendPathDelim(Application.Location)+aFile));
         for i := 0 to sl.Count-1 do
           begin
             aMessage:=ConvertEncoding(aMessage,GuessEncoding(aMessage),EncodingUTF8);
@@ -217,4 +217,4 @@ end.
 
 
 
-
+

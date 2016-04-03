@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, PoTranslator,Translations,FileUtil,Forms,LCLProc,TypInfo,
-  LCLIntf,LResources, DbCtrls, LCLStrConsts,uGeneralStrConsts;
+  LCLIntf,LResources, DbCtrls, LCLStrConsts,uGeneralStrConsts,Utils;
 
 procedure LoadLanguage(lang : string);
 procedure TranslateNavigator(nav : TDBCustomNavigator);
@@ -43,7 +43,7 @@ var
   Comp: TComponent;
   aFilename: String;
 Begin
-  If FindFirstUTF8(ProgramDirectory+'languages'+Directoryseparator+'*.'+lowercase(copy(lang,0,2))+'.po',faAnyFile,Info)=0 then
+  If FindFirst(UniToSys(ProgramDirectory+'languages'+Directoryseparator+'*.'+lowercase(copy(lang,0,2))+'.po'),faAnyFile,Info)=0 then
     repeat
       po := TPOFile.Create(ProgramDirectory+'languages'+Directoryseparator+Info.Name);
       units := TStringList.Create;
@@ -87,8 +87,8 @@ Begin
               end;
         end;
       po.Free;
-    until FindNextUTF8(info)<>0;
-  FindCloseUTF8(Info);
+    until FindNext(info)<>0;
+  FindClose(Info);
   aFilename := ProgramDirectory+'languages'+Directoryseparator+'forms.'+lowercase(copy(lang,0,2))+'.po';
   if FileExists(aFilename) then
     LRSTranslator:=TPoTranslator.Create(aFilename);
