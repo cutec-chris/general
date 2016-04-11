@@ -87,7 +87,6 @@ type
     procedure SetCompiler(AValue: TIPSPascalCompiler);
     procedure SetRuntime(AValue: TPSExec);
   protected
-    FLastUnitName : string;
     procedure InternalChDir(Directory : string);
     procedure InternalMkDir(Directory : string);
     function InternalApplicationDir : string;
@@ -350,7 +349,9 @@ end;
 procedure OnRunActLine(Sender: TPSExec);
 begin
   if Assigned(ActRuntime) and Assigned(ActRuntime.OnRunLine) then
-    ActRuntime.OnRunLine(ActRuntime,Sender.UnitName,-1,-1,-1);
+    begin
+      ActRuntime.OnRunLine(ActRuntime,Sender.UnitName,-1,-1,-1);
+    end;
 end;
 
 procedure OnSourceLine(Sender: TPSDebugExec; const Name: tbtstring; Position,
@@ -359,7 +360,6 @@ begin
   if Assigned(ActRuntime) and Assigned(ActRuntime.OnRunLine) then
     begin
       ActRuntime.OnRunLine(ActRuntime,Name,Position,Row,Col);
-      TPascalScript(ActRuntime).FLastUnitName := Name;
     end;
 end;
 
@@ -1266,7 +1266,8 @@ begin
   CompleteOutput:='';
   Compiler.Obj := Self;
   Compiler.OnUses:= @ExtendICompiler;
-  Result:= Compiler.Compile(Source) and Compiler.GetOutput(aBytecode);
+  Result:= Compiler.Compile(Source)
+       and Compiler.GetOutput(aBytecode);
   ByteCode:=aBytecode;
   for i := 0 to Compiler.MsgCount-1 do
     begin
@@ -1280,7 +1281,6 @@ begin
       Compiler.GetDebugOutput(aDebugData);
       result := TPSDebugExec(FRuntime).LoadData(Bytecode);
       TPSDebugExec(FRuntime).LoadDebugData(aDebugData);
-      Result := True;
     end
   else
     Result:= Result and FRuntime.LoadData(Bytecode);
