@@ -60,6 +60,7 @@ type
     procedure InternalDebugln(const s: string);
     procedure InternalReadln(var s: string);
     procedure InternalClearScreen;
+    procedure InternalBringToFront;
     procedure SetSource(AValue: string);virtual;
     function GetStatus: TScriptStatus;virtual;
   public
@@ -114,6 +115,7 @@ type
 
 var
   DoClearScreen : TClearScreenProc = nil;
+  DoBringToFront : TClearScreenProc = nil;
 
 implementation
 
@@ -181,6 +183,12 @@ procedure TScript.InternalClearScreen;
 begin
   if Assigned(DoClearScreen) then
     DoClearScreen(Self);
+end;
+
+procedure TScript.InternalBringToFront;
+begin
+  if Assigned(DoBringToFront) then
+    DoBringToFront(Self);
 end;
 
 function TScript.Execute(aParameters: Variant; Debug: Boolean): Boolean;

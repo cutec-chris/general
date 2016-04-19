@@ -442,6 +442,7 @@ begin
           AddMethod(Self,@TPascalScript.InternalChDir,'procedure ChDir(Dir : string);');
           AddMethod(Self,@TPascalScript.InternalMkDir,'procedure MkDir(Dir : string);');
           AddMethod(Self,@TPascalScript.InternalClearScreen,'procedure ClearScreen;');
+          AddMethod(Self,@TPascalScript.InternalBringToFront,'procedure BringToFront;');
         except
         end;
         uPSC_std.SIRegister_Std(Comp);
