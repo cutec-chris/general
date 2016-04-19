@@ -847,6 +847,7 @@ begin
           CompleteOutput:=copy(CompleteOutput,pos(#10,CompleteOutput)+1,length(CompleteOutput));
         end;
     end;
+  sleep(100);
 end;
 function TPascalScript.InternalExecResult(Pid: Integer): Integer;
 var
