@@ -27,9 +27,9 @@ uses
   Classes, SysUtils, uPSCompiler,db,
   uPSC_classes, uPSC_DB, uPSC_dateutils, uPSC_dll, uPSRuntime,
   uPSR_classes, uPSR_DB, uPSR_dateutils, uPSR_dll, uPSUtils,
-  uPSR_std,uPSC_std,uPSDebugger,httpsend,blcksock,synautil,
+  uPSR_std,uPSC_std,uPSDebugger,
   Process,usimpleprocess,Utils,variants,dynlibs,
-  synamisc,RegExpr,MathParser,genscript;
+  RegExpr,MathParser,genscript;
 
 type
   TSleepFunc = procedure(MiliSecValue : cardinal);
@@ -66,8 +66,6 @@ type
 
   TPascalScript = class(TByteCodeScript)
   private
-    Fhttp: THTTPSend;
-    FSocket : TBlockSocket;
     CompleteOutput : string;
     FExecStep: TNotifyEvent;
     FOnUses: TPascalOnUses;
@@ -102,20 +100,6 @@ type
     function InternalKill(Pid : Integer): Boolean;
     procedure InternalBeep;
     procedure InternalSleep(MiliSecValue: LongInt);virtual;
-
-    function InternalHttpGet(aURL: string;aTimeout : Integer): string;
-    function InternalHttpPost(aURL,Content : string;aTimeout : Integer) : string;
-    procedure InternalHttpSetMimeType(MimeType : string);
-    procedure InternalHttpSetUserAgent(UserAgent : string);
-    function InternalHttpGetResult : Integer;
-    function InternalHttpGetHeaders : string;
-    procedure InternalHttpSetHeaders(Headers : string);
-    function InternalHttpGetCookies : string;
-    procedure InternalHttpSetCookies(Headers : string);
-    procedure InternalHttpClear;
-    function InternalTcpRaw(aURL,Content : string;aTimeout : Integer) : string;
-    function InternalGetDNS: string;
-    function InternalGetLocalIPs: string;
 
     function InternalRebootMashine : Boolean;
     function InternalShutdownMashine : Boolean;
@@ -171,12 +155,12 @@ var
 
 implementation
 
-uses ssl_openssl
+uses
   {$ifdef WINDOWS}
-  ,Windows,mmsystem
+  Windows,mmsystem
   {$endif}
   {$ifdef UNIX}
-  ,BaseUnix
+  BaseUnix
   {$endif}
   ;
 resourcestring
@@ -495,25 +479,6 @@ begin
         AddMethod(Self,@TPascalScript.InternalExecActive,'function ExecActive(Pid : Integer) : Boolean;');
         AddMethod(Self,@TPascalScript.InternalExecResult,'function ExecResult(Pid : Integer) : Integer;');
         AddMethod(Self,@TPascalScript.InternalKill,'function Kill(Pid : Integer) : Boolean;');
-      end
-    else if lowercase(cName)='net' then
-      begin
-        AddMethod(Self,@TPascalScript.InternalHttpGet,'function HttpGet(URL : string;aTimeout : Integer) : string;');
-        AddMethod(Self,@TPascalScript.InternalHttpPost,'function HttpPost(URL,Content : string;aTimeout : Integer) : string;');
-        AddMethod(Self,@TPascalScript.InternalHttpSetMimeType,'procedure HttpSetMimeType(MimeType : string);');
-        AddMethod(Self,@TPascalScript.InternalHttpSetUserAgent,'procedure HttpSetuserAgent(UserAgent : string);');
-        AddMethod(Self,@TPascalScript.InternalHttpgetResult,'function HttpGetResult : Integer;');
-        AddMethod(Self,@TPascalScript.InternalHttpClear,'procedure HttpClear;');
-        AddMethod(Self,@TPascalScript.InternalHttpGetHeaders,'function InternalHttpGetHeaders : string;');
-        AddMethod(Self,@TPascalScript.InternalHttpSetHeaders,'procedure InternalHttpSetHeaders(Headers : string);');
-        AddMethod(Self,@TPascalScript.InternalHttpGetCookies,'function InternalHttpGetCookies : string;');
-        AddMethod(Self,@TPascalScript.InternalHttpSetCookies,'procedure InternalHttpSetCookies(Headers : string);');
-        AddMethod(Self,@TPascalScript.InternalTcpRaw,'function TcpRaw(URL : string;Content : string;aTimeout : Integer) : string;');
-        AddMethod(Self,@TPascalScript.InternalGetDNS,'function GetDNS : string;');
-        AddMethod(Self,@TPascalScript.InternalGetLocalIPs,'function GetLocalIPs : string;');
-        AddFunction(@HTTPEncode,'function HTTPEncode(const str : String) : string;');
-        AddFunction(@HTMLEncode,'function HTMLEncode(const str : String) : string;');
-        AddFunction(@HTMLDecode,'function HTMLDecode(const str : String) : string;');
       end
     else if lowercase(cName)='mashine' then
       begin
@@ -891,96 +856,7 @@ procedure TPascalScript.InternalSleep(MiliSecValue: LongInt);
 begin
   OwnSleep(MiliSecValue);
 end;
-function TPascalScript.InternalHttpGet(aURL: string; aTimeout: Integer): string;
-begin
-  Fhttp.Timeout:=aTimeout;
-  Fhttp.KeepAlive:=false;
-  Fhttp.HTTPMethod('GET',aURL);
-  if Fhttp.ResultCode=200 then
-    begin
-      setlength(Result,Fhttp.Document.Size);
-      Fhttp.Document.Read(Result[1],Fhttp.Document.Size);
-    end
-  else Result:='';
-end;
-function TPascalScript.InternalHttpPost(aURL, Content: string; aTimeout: Integer
-  ): string;
-begin
-  Fhttp := THTTPSend.Create;
-  Fhttp.Timeout:=aTimeout;
-  Fhttp.Document.Write(Content[1],length(Content));
-  Fhttp.HTTPMethod('POST',aURL);
-  if Fhttp.ResultCode=200 then
-    begin
-      setlength(Result,Fhttp.Document.Size);
-      Fhttp.Document.Read(Result[1],Fhttp.Document.Size);
-    end
-  else Result:='';
-end;
 
-procedure TPascalScript.InternalHttpSetMimeType(MimeType: string);
-begin
-  Fhttp.MimeType:=MimeType;
-end;
-
-procedure TPascalScript.InternalHttpSetUserAgent(UserAgent: string);
-begin
-  Fhttp.UserAgent:=UserAgent;
-end;
-
-function TPascalScript.InternalHttpGetResult: Integer;
-begin
-  Result := Fhttp.ResultCode;
-end;
-
-function TPascalScript.InternalHttpGetHeaders: string;
-begin
-  Result := Fhttp.Headers.Text;
-end;
-
-procedure TPascalScript.InternalHttpSetHeaders(Headers: string);
-begin
-  Fhttp.Headers.Text:=Headers;
-end;
-
-function TPascalScript.InternalHttpGetCookies: string;
-begin
-  Result := Fhttp.Cookies.Text;
-end;
-
-procedure TPascalScript.InternalHttpSetCookies(Headers: string);
-begin
-  Fhttp.Cookies.Text:=Headers;
-end;
-
-procedure TPascalScript.InternalHttpClear;
-begin
-  Fhttp.Clear;
-end;
-
-function TPascalScript.InternalTcpRaw(aURL, Content: string; aTimeout: Integer
-  ): string;
-var
-  Prot,User,Pass,Host,Port,Path,Para: string;
-begin
-  synautil.ParseURL(aURL,Prot,User,Pass,Host,Port,Path,Para);
-  FSocket.ConnectionTimeout:=aTimeout;
-  FSocket.Connect(Host,Port);
-  if FSocket.LastErrorDesc<>'' then
-    Result := FSocket.LastErrorDesc;
-  FSocket.SendString(Content);
-  Result := FSocket.RecvString(aTimeout);
-  FSocket.CloseSocket;
-end;
-
-function TPascalScript.InternalGetDNS: string;
-begin
-  Result := GetDNS;
-end;
-function TPascalScript.InternalGetLocalIPs: string;
-begin
-  Result := GetLocalIPs;
-end;
 function TPascalScript.InternalRebootMashine: Boolean;
 {$ifdef Windows}
 var
@@ -1025,7 +901,7 @@ end;
 function TPascalScript.InternalWakeMashine(Mac, Ip: string): Boolean;
 begin
   Result := True;
-  WakeOnLan(Mac,Ip);
+  //WakeOnLan(Mac,Ip);
 end;
 
 function TPascalScript.InternalTimeToStr(Time: TDateTime): string;
@@ -1103,8 +979,6 @@ begin
   FCompilerFree:=True;
   FRuntime:= TPSExec.Create;
   FRuntimeFree := True;
-  FHttp := THTTPSend.Create;
-  FSocket := TBlockSocket.Create;
   FClassImporter:= TPSRuntimeClassImporter.CreateAndRegister(FRuntime, false);
 end;
 
