@@ -230,6 +230,7 @@ end;
 function CheckCBText(aText : string) : string;
 begin
   if (pos(' ',aText) > 0) and (copy(aText,0,pos(' ',aText)-1) = UpperCase(copy(aText,0,pos(' ',aText)-1)))
+  {
   and (pos('1',copy(atext,0,4))=0)
   and (pos('2',copy(atext,0,4))=0)
   and (pos('3',copy(atext,0,4))=0)
@@ -239,6 +240,7 @@ begin
   and (pos('7',copy(atext,0,4))=0)
   and (pos('8',copy(atext,0,4))=0)
   and (pos('9',copy(atext,0,4))=0)
+  }
   then
     Result := copy(aText,0,pos(' ',aText)-1)
   else Result := aText;
@@ -849,6 +851,8 @@ end;
 procedure TExtDBCombobox.UpdateData(Sender: TObject);
 begin
   Text := CheckCBText(Text);
+  if Assigned(Field) and (length(Text)>tStringField(Field).Size) then
+    Text := copy(Text,0,tStringField(Field).Size-1);
   inherited UpdateData(Sender);
   DataChange(Sender);
 end;
