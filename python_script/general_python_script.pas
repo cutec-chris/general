@@ -2,19 +2,13 @@
   This source is only used to compile and install the package.
  }
 
-unit general_python_script;
+unit general_python_script; 
 
 interface
 
 uses
-  genpythonscript, LazarusPackageIntf;
+  genpythonscript;
 
 implementation
 
-procedure Register;
-begin
-end;
-
-initialization
-  RegisterPackage('general_python_script', @Register);
 end.
