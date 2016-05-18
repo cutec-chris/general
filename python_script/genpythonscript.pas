@@ -111,6 +111,8 @@ begin
   fEngine.InitScript.Add('import prometinternals');
   fEngine.IO := fIO;
   fEngine.RedirectIO:=True;
+  fEngine.FatalAbort:=False;
+  fEngine.FatalMsgDlg:=True;
   fEngine.Initialize;
 end;
 
