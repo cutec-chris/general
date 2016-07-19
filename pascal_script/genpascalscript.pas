@@ -549,6 +549,7 @@ begin
           aLibName := FindLib(ExtractFilePath(ParamStr(0))+'..'+DirectorySeparator+'scriptplugins'+DirectorySeparator,cName);
         if FileExists(aLibname) then
           begin
+            Debugln('Library exists:'+aLibName);
             if not Assigned(Comp.OnExternalProc) then
               uPSC_dll.RegisterDll_Compiletime(Comp);
             Runtime.AddSpecialProcImport('dll', @IProcessDllImport, nil);
@@ -628,7 +629,9 @@ begin
                       FToolRegistered(cName);
                   end;
                 FreeLibrary(aLib);
-              end;
+              end
+            else
+              Debugln('Library  clould not be loaded '+aLibName);
           end
         else //unit uses
           begin
@@ -1160,6 +1163,8 @@ begin
     end
   else
     Result:= Result and FRuntime.LoadData(Bytecode);
+  if Result and (not (Runtime is TPSDebugExec)) then
+    FRuntime.OnRunLine:=@OnRunActLine;
 end;
 
 function TPascalScript.Stop: Boolean;
@@ -1226,14 +1231,23 @@ end;
 function TPascalScript.RunScriptFunction(const Params: array of Variant;fName : string): Variant;
 var
   tmp: TbtString;
+  aCode: TPSError;
 begin
   try
-    Result := Runtime.RunProcPN(Params,fName);
+    Result := True;
+    if ByteCode='' then Result := Compile;
+    if Result then
+      Result := Runtime.RunProcPN(Params,fName);
   except
     on e : Exception do
       begin
-        tmp:= TIFErrorToString(Runtime.ExceptionCode, Runtime.ExceptionString)+' '+IntToStr(Runtime.ExceptionPos);
-        raise Exception.Create(tmp);
+        aCode := Runtime.ExceptionCode;
+        if aCode <> ErNoError then
+          begin
+            tmp:= TIFErrorToString(Runtime.ExceptionCode, Runtime.ExceptionString)+' '+IntToStr(Runtime.ExceptionPos);
+            raise Exception.Create(tmp);
+          end
+        else raise;
       end;
   end;
 end;
@@ -1341,7 +1355,8 @@ end;
 procedure ScriptBeep;
 begin
   {$ifdef WINDOWS}
-  PlaySoundW(PWideChar('Beep'),hInstance, SND_ASYNC);
+  Windows.Beep(1000,120);
+  //PlaySoundW(PWideChar('Beep'),hInstance, SND_ASYNC);
   {$endif}
 end;
 
