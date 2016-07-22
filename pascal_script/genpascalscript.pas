@@ -408,7 +408,7 @@ var
   begin
     Result := '';
     if FileExists(UniToSys(aPath+lowercase(aName)+'.dll')) then
-      Result := aPath+lowercase(aName)+'.dll';
+      Result := UniToSys(aPath+lowercase(aName)+'.dll');
     if FileExists(aPath+lowercase(aName)+'.so') then
       Result := aPath+lowercase(aName)+'.so';
     if FileExists(aPath+'lib'+lowercase(aName)+'.so') then
@@ -549,7 +549,6 @@ begin
           aLibName := FindLib(ExtractFilePath(ParamStr(0))+'..'+DirectorySeparator+'scriptplugins'+DirectorySeparator,cName);
         if FileExists(aLibname) then
           begin
-            Debugln('Library exists:'+aLibName);
             if not Assigned(Comp.OnExternalProc) then
               uPSC_dll.RegisterDll_Compiletime(Comp);
             Runtime.AddSpecialProcImport('dll', @IProcessDllImport, nil);
@@ -560,6 +559,8 @@ begin
                 begin
                   bLib := TLoadedLib(LoadedLibs[i]);
                   Result := Comp.Compile(bLib.Code);
+                  if not Result then
+                    Debugln('Failed to compile Library:'+bLib.LibName);
                   exit;
                 end;
             aLib := LoadLibrary(PChar(aLibName));
@@ -606,6 +607,8 @@ begin
                     NewLib.Code:=newUnit;
                     LoadedLibs.Add(NewLib);
                     Result := Comp.Compile(newUnit);
+                    if not Result then
+                      Debugln('Failed to compile Library(2):'+bLib.LibName);
                     Procs.Free;
                   end
                 else
@@ -620,6 +623,8 @@ begin
                         NewLib.Code:=StringReplace(sProc,'%dllpath%',aLibName,[rfReplaceAll]);
                         LoadedLibs.Add(NewLib);
                         Result := Comp.Compile(NewLib.Code);
+                        if not Result then
+                          Debugln('Failed to compile Library(3):'+bLib.LibName);
                       end;
                   end;
                 aProc := aprocT(dynlibs.GetProcAddress(aLib,'ScriptTool'));
