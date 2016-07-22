@@ -403,6 +403,8 @@ var
   tmp3: String;
   bLib: TLoadedLib;
   FLibCompiled: Boolean = false;
+  a: Integer;
+  aMsg: TPSPascalCompilerMessage;
 
   function FindLib(aPath,aName : string) : string;
   begin
@@ -559,8 +561,14 @@ begin
                 begin
                   bLib := TLoadedLib(LoadedLibs[i]);
                   Result := Comp.Compile(bLib.Code);
+                  for a := 0 to Comp.MsgCount-1 do
+                    begin
+                      CompleteOutput:=CompleteOutput+Compiler.Msg[a].MessageToString+LineEnding;
+                      aMsg := Comp.Msg[a];
+                      if Assigned(OnCompileMessage) then OnCompileMessage(Self,aMsg.UnitName,Comp.Msg[i].MessageToString,Comp.Msg[i].Pos,Comp.Msg[i].Row,Comp.Msg[i].Col);
+                    end;
                   if not Result then
-                    Debugln('Failed to compile Library:'+bLib.LibName);
+                    Debugln('Failed to compile Library:'+aLibName+' '+CompleteOutput);
                   exit;
                 end;
             aLib := LoadLibrary(PChar(aLibName));
@@ -607,8 +615,14 @@ begin
                     NewLib.Code:=newUnit;
                     LoadedLibs.Add(NewLib);
                     Result := Comp.Compile(newUnit);
+                    for i := 0 to Comp.MsgCount-1 do
+                      begin
+                        CompleteOutput:=CompleteOutput+Compiler.Msg[i].MessageToString+LineEnding;
+                        aMsg := Comp.Msg[i];
+                        if Assigned(OnCompileMessage) then OnCompileMessage(Self,aMsg.UnitName,Comp.Msg[i].MessageToString,Comp.Msg[i].Pos,Comp.Msg[i].Row,Comp.Msg[i].Col);
+                      end;
                     if not Result then
-                      Debugln('Failed to compile Library(2):'+bLib.LibName);
+                      Debugln('Failed to compile Library(2):'+aLibName+' '+CompleteOutput);
                     Procs.Free;
                   end
                 else
@@ -623,8 +637,14 @@ begin
                         NewLib.Code:=StringReplace(sProc,'%dllpath%',aLibName,[rfReplaceAll]);
                         LoadedLibs.Add(NewLib);
                         Result := Comp.Compile(NewLib.Code);
+                        for i := 0 to Comp.MsgCount-1 do
+                          begin
+                            CompleteOutput:=CompleteOutput+Compiler.Msg[i].MessageToString+LineEnding;
+                            aMsg := Comp.Msg[i];
+                            if Assigned(OnCompileMessage) then OnCompileMessage(Self,aMsg.UnitName,Comp.Msg[i].MessageToString,Comp.Msg[i].Pos,Comp.Msg[i].Row,Comp.Msg[i].Col);
+                          end;
                         if not Result then
-                          Debugln('Failed to compile Library(3):'+bLib.LibName);
+                          Debugln('Failed to compile Library(3):'+aLibName+' '+CompleteOutput);
                       end;
                   end;
                 aProc := aprocT(dynlibs.GetProcAddress(aLib,'ScriptTool'));
