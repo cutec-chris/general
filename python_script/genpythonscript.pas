@@ -50,6 +50,9 @@ type
     function GetStatus: TScriptStatus; override;
     function Stop: Boolean; override;
     function Execute(aParameters: Variant;Debug : Boolean = false): Boolean; override;
+    function GetVarContents(Identifier: string): string; override;
+    function RunScriptFunction(const Params: array of Variant; aName: string
+  ): Variant; override;
     destructor Destroy; override;
   end;
 
@@ -60,9 +63,12 @@ var
 
 function prometinternals_callline(self, args: PPyObject
   ): PPyObject; cdecl;
+var
+  aArg : Variant;
 begin
+  aArg := aScript.fEngine.PyObjectAsVariant(args);
   if Assigned(aScript.OnRunLine) then
-    aScript.OnRunLine(aScript,'',0,0,0);
+    aScript.OnRunLine(aScript,'',0,aArg[0],0);
   if not aScript.FStopping then
     Result:=aScript.fEngine.ReturnNone
   else
@@ -83,9 +89,16 @@ begin
 end;
 
 procedure TPythonScript.fIOSendData(Sender: TObject; const Data: AnsiString);
+var
+  aData: String;
 begin
   if Assigned(WriteLn) then
-    WriteLn(Data);
+    begin
+      if pos(';prometinternals._CallLineInfo(',Data)>0 then
+        aData := copy(Data,0,pos(';prometinternals._CallLineInfo(',Data))
+      else aData := Data;
+      WriteLn(aData);
+    end;
 end;
 
 function TPythonScript.GetTyp: string;
@@ -143,6 +156,7 @@ var
   aLine: Integer=0;
   aPosition : Integer=0;
   i: Integer;
+  aData: String;
 begin
   Result := False;
   try
@@ -165,14 +179,28 @@ begin
   except
     on e : Exception do
       begin
+        if pos(';prometinternals._CallLineInfo(',e.Message)>0 then
+          aData := copy(e.Message,0,pos(';prometinternals._CallLineInfo(',e.Message))
+        else aData := e.Message;
         if Assigned(Writeln) then
-          Writeln(e.Message);
+          Writeln(aData);
         FRunning:=False;
         FreeAndNil(FLines);
         Init;
         FStopping:=False;
       end;
   end;
+end;
+
+function TPythonScript.GetVarContents(Identifier: string): string;
+begin
+  Result:='';//TODO:implement me
+end;
+
+function TPythonScript.RunScriptFunction(const Params: array of Variant;
+  aName: string): Variant;
+begin
+  Result:=Null;//TODO:implement me
 end;
 
 destructor TPythonScript.Destroy;
