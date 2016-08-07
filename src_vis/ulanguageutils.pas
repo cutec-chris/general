@@ -25,7 +25,7 @@ interface
 
 uses
   Classes, SysUtils, PoTranslator,Translations,FileUtil,Forms,LCLProc,TypInfo,
-  LCLIntf,LResources, DbCtrls, LCLStrConsts,uGeneralStrConsts,Utils;
+  LCLIntf,LResources, DbCtrls, LCLStrConsts,uGeneralStrConsts,Utils,LazUTF8;
 
 procedure LoadLanguage(lang : string);
 procedure TranslateNavigator(nav : TDBCustomNavigator);
