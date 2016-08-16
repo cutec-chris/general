@@ -544,99 +544,81 @@ begin
     else
       begin
         Result := False;
-        aLibName := FindLib(ExtractFilePath(ParamStr(0)),cName);
-        if aLibName='' then
-          aLibName := FindLib(ExtractFilePath(ParamStr(0))+'scriptplugins'+DirectorySeparator,cName);
-        if aLibName='' then
-          aLibName := FindLib(ExtractFilePath(ParamStr(0))+'..'+DirectorySeparator+'scriptplugins'+DirectorySeparator,cName);
-        if FileExists(aLibname) then
+        if Assigned(FOnUses) then
+          Result := FOnUses(Self,cName,Result) or Result;
+        if not Result then
           begin
-            if not Assigned(Comp.OnExternalProc) then
-              uPSC_dll.RegisterDll_Compiletime(Comp);
-            Runtime.AddSpecialProcImport('dll', @IProcessDllImport, nil);
-            Runtime.RegisterFunctionName('UNLOADDLL', @UnloadProcInt, nil, nil);
-            Runtime.RegisterFunctionName('DLLGETLASTERROR', @GetLastErrorProc, nil, nil);
-            for i := 0 to LoadedLibs.Count-1 do
-              if TLoadedLib(LoadedLibs[i]).Name=cName then
-                begin
-                  bLib := TLoadedLib(LoadedLibs[i]);
-                  Result := Comp.Compile(bLib.Code);
-                  for a := 0 to Comp.MsgCount-1 do
-                    begin
-                      CompleteOutput:=CompleteOutput+Compiler.Msg[a].MessageToString+LineEnding;
-                      aMsg := Comp.Msg[a];
-                      if Assigned(OnCompileMessage) then OnCompileMessage(Self,aMsg.UnitName,Comp.Msg[i].MessageToString,Comp.Msg[i].Pos,Comp.Msg[i].Row,Comp.Msg[i].Col);
-                    end;
-                  if not Result then
-                    Debugln('Failed to compile Library:'+aLibName+' '+CompleteOutput);
-                  exit;
-                end;
-            aLib := LoadLibrary(PChar(aLibName));
-            if aLib <> dynlibs.NilHandle  then
+            aLibName := FindLib(ExtractFilePath(ParamStr(0)),cName);
+            if aLibName='' then
+              aLibName := FindLib(ExtractFilePath(ParamStr(0))+'scriptplugins'+DirectorySeparator,cName);
+            if aLibName='' then
+              aLibName := FindLib(ExtractFilePath(ParamStr(0))+'..'+DirectorySeparator+'scriptplugins'+DirectorySeparator,cName);
+            if FileExists(aLibname) then
               begin
-                aProc := aprocT(dynlibs.GetProcAddress(aLib,'ScriptDefinition'));
-                if Assigned(aProc) then
+                if not Assigned(Comp.OnExternalProc) then
+                  uPSC_dll.RegisterDll_Compiletime(Comp);
+                Runtime.AddSpecialProcImport('dll', @IProcessDllImport, nil);
+                Runtime.RegisterFunctionName('UNLOADDLL', @UnloadProcInt, nil, nil);
+                Runtime.RegisterFunctionName('DLLGETLASTERROR', @GetLastErrorProc, nil, nil);
+                for i := 0 to LoadedLibs.Count-1 do
+                  if TLoadedLib(LoadedLibs[i]).Name=cName then
+                    begin
+                      bLib := TLoadedLib(LoadedLibs[i]);
+                      Result := Comp.Compile(bLib.Code);
+                      for a := 0 to Comp.MsgCount-1 do
+                        begin
+                          CompleteOutput:=CompleteOutput+Compiler.Msg[a].MessageToString+LineEnding;
+                          aMsg := Comp.Msg[a];
+                          if Assigned(OnCompileMessage) then OnCompileMessage(Self,aMsg.UnitName,Comp.Msg[i].MessageToString,Comp.Msg[i].Pos,Comp.Msg[i].Row,Comp.Msg[i].Col);
+                        end;
+                      if not Result then
+                        Debugln('Failed to compile Library:'+aLibName+' '+CompleteOutput);
+                      exit;
+                    end;
+                aLib := LoadLibrary(PChar(aLibName));
+                if aLib <> dynlibs.NilHandle  then
                   begin
-                    newUnit := 'unit '+cname+';'+LineEnding+'interface'+LineEnding+'type';
-                    Procs := TStringList.Create;
-                    sProc := aProc();
-                    Procs.text := sProc;
-                    for i := 0 to procs.Count-1 do
-                      begin
-                        sProc := trim(procs[i]);
-                        if (copy(lowercase(trim(sProc)),0,8)='function')
-                        or (copy(lowercase(trim(sProc)),0,9)='procedure') then
-                          begin
-                            tmp := copy(sProc,pos(' ',sProc)+1,length(sProc));
-                            if pos('(',tmp)>0 then
-                              tmp := copy(tmp,0,pos('(',tmp)-1);
-                            if pos(':',tmp)>0 then
-                              tmp := trim(copy(tmp,0,pos(':',tmp)-1))
-                            else if pos(';',tmp)>0 then
-                              tmp := trim(copy(tmp,0,pos(';',tmp)-1));
-                            if pos(')',sProc)>0 then
-                              tmp1 := copy(sProc,0,pos(')',sProc))
-                            else tmp1 := '';
-                            tmp3 := copy(sProc,length(tmp1)+1,length(sProc));
-                            tmp1 := tmp1+copy(tmp3,0,pos(';',tmp3));
-                            tmp2 := copy(sProc,pos(')',sProc)+1,length(sProc));
-                            tmp2 := copy(tmp2,pos(';',tmp2)+1,Length(sProc));
-                            tmp2 := copy(tmp2,0,pos(';',tmp2)-1);
-                            if tmp2<>'' then
-                              tmp2 := ' '+tmp2;
-                            tmp := '  '+tmp1+'external '''+tmp+'@'+aLibname+tmp2+''';';
-                          end
-                        else tmp := '  '+sProc;
-                        newUnit := newUnit+LineEnding+tmp;
-                      end;
-                    newUnit := newUnit+LineEnding+'implementation'+lineending+'end.';
-                    NewLib := TLoadedLib.Create;
-                    NewLib.Name:=cName;
-                    NewLib.Code:=newUnit;
-                    LoadedLibs.Add(NewLib);
-                    Result := Comp.Compile(newUnit);
-                    for i := 0 to Comp.MsgCount-1 do
-                      begin
-                        CompleteOutput:=CompleteOutput+Compiler.Msg[i].MessageToString+LineEnding;
-                        aMsg := Comp.Msg[i];
-                        if Assigned(OnCompileMessage) then OnCompileMessage(Self,aMsg.UnitName,Comp.Msg[i].MessageToString,Comp.Msg[i].Pos,Comp.Msg[i].Row,Comp.Msg[i].Col);
-                      end;
-                    if not Result then
-                      Debugln('Failed to compile Library(2):'+aLibName+' '+CompleteOutput);
-                    Procs.Free;
-                  end
-                else
-                  begin
-                    aProc := aprocT(dynlibs.GetProcAddress(aLib,'ScriptUnitDefinition'));
+                    aProc := aprocT(dynlibs.GetProcAddress(aLib,'ScriptDefinition'));
                     if Assigned(aProc) then
                       begin
-                        newUnit := '';
+                        newUnit := 'unit '+cname+';'+LineEnding+'interface'+LineEnding+'type';
+                        Procs := TStringList.Create;
                         sProc := aProc();
+                        Procs.text := sProc;
+                        for i := 0 to procs.Count-1 do
+                          begin
+                            sProc := trim(procs[i]);
+                            if (copy(lowercase(trim(sProc)),0,8)='function')
+                            or (copy(lowercase(trim(sProc)),0,9)='procedure') then
+                              begin
+                                tmp := copy(sProc,pos(' ',sProc)+1,length(sProc));
+                                if pos('(',tmp)>0 then
+                                  tmp := copy(tmp,0,pos('(',tmp)-1);
+                                if pos(':',tmp)>0 then
+                                  tmp := trim(copy(tmp,0,pos(':',tmp)-1))
+                                else if pos(';',tmp)>0 then
+                                  tmp := trim(copy(tmp,0,pos(';',tmp)-1));
+                                if pos(')',sProc)>0 then
+                                  tmp1 := copy(sProc,0,pos(')',sProc))
+                                else tmp1 := '';
+                                tmp3 := copy(sProc,length(tmp1)+1,length(sProc));
+                                tmp1 := tmp1+copy(tmp3,0,pos(';',tmp3));
+                                tmp2 := copy(sProc,pos(')',sProc)+1,length(sProc));
+                                tmp2 := copy(tmp2,pos(';',tmp2)+1,Length(sProc));
+                                tmp2 := copy(tmp2,0,pos(';',tmp2)-1);
+                                if tmp2<>'' then
+                                  tmp2 := ' '+tmp2;
+                                tmp := '  '+tmp1+'external '''+tmp+'@'+aLibname+tmp2+''';';
+                              end
+                            else tmp := '  '+sProc;
+                            newUnit := newUnit+LineEnding+tmp;
+                          end;
+                        newUnit := newUnit+LineEnding+'implementation'+lineending+'end.';
                         NewLib := TLoadedLib.Create;
                         NewLib.Name:=cName;
-                        NewLib.Code:=StringReplace(sProc,'%dllpath%',aLibName,[rfReplaceAll]);
+                        NewLib.Code:=newUnit;
                         LoadedLibs.Add(NewLib);
-                        Result := Comp.Compile(NewLib.Code);
+                        Result := Comp.Compile(newUnit);
                         for i := 0 to Comp.MsgCount-1 do
                           begin
                             CompleteOutput:=CompleteOutput+Compiler.Msg[i].MessageToString+LineEnding;
@@ -644,23 +626,46 @@ begin
                             if Assigned(OnCompileMessage) then OnCompileMessage(Self,aMsg.UnitName,Comp.Msg[i].MessageToString,Comp.Msg[i].Pos,Comp.Msg[i].Row,Comp.Msg[i].Col);
                           end;
                         if not Result then
-                          Debugln('Failed to compile Library(3):'+aLibName+' '+CompleteOutput);
+                          Debugln('Failed to compile Library(2):'+aLibName+' '+CompleteOutput);
+                        Procs.Free;
+                      end
+                    else
+                      begin
+                        aProc := aprocT(dynlibs.GetProcAddress(aLib,'ScriptUnitDefinition'));
+                        if Assigned(aProc) then
+                          begin
+                            newUnit := '';
+                            sProc := aProc();
+                            NewLib := TLoadedLib.Create;
+                            NewLib.Name:=cName;
+                            NewLib.Code:=StringReplace(sProc,'%dllpath%',aLibName,[rfReplaceAll]);
+                            LoadedLibs.Add(NewLib);
+                            Result := Comp.Compile(NewLib.Code);
+                            for i := 0 to Comp.MsgCount-1 do
+                              begin
+                                CompleteOutput:=CompleteOutput+Compiler.Msg[i].MessageToString+LineEnding;
+                                aMsg := Comp.Msg[i];
+                                if Assigned(OnCompileMessage) then OnCompileMessage(Self,aMsg.UnitName,Comp.Msg[i].MessageToString,Comp.Msg[i].Pos,Comp.Msg[i].Row,Comp.Msg[i].Col);
+                              end;
+                            if not Result then
+                              Debugln('Failed to compile Library(3):'+aLibName+' '+CompleteOutput);
+                          end;
                       end;
-                  end;
-                aProc := aprocT(dynlibs.GetProcAddress(aLib,'ScriptTool'));
-                if Assigned(aProc) then
-                  begin
-                    if Assigned(OnToolRegistering) then
-                      FToolRegistered(cName);
-                  end;
-                FreeLibrary(aLib);
+                    aProc := aprocT(dynlibs.GetProcAddress(aLib,'ScriptTool'));
+                    if Assigned(aProc) then
+                      begin
+                        if Assigned(OnToolRegistering) then
+                          FToolRegistered(cName);
+                      end;
+                    FreeLibrary(aLib);
+                  end
+                else
+                  Debugln('Library  clould not be loaded '+aLibName);
               end
-            else
-              Debugln('Library  clould not be loaded '+aLibName);
-          end
-        else //unit uses
-          begin
-            Result := False;
+            else //unit uses
+              begin
+                Result := False;
+              end;
           end;
       end;
   except
@@ -841,7 +846,7 @@ begin
           CompleteOutput:=copy(CompleteOutput,pos(#10,CompleteOutput)+1,length(CompleteOutput));
         end;
     end;
-  sleep(100);
+  sleep(1);
 end;
 function TPascalScript.InternalExecResult(Pid: Integer): Integer;
 var
