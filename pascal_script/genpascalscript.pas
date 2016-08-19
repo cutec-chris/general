@@ -146,10 +146,12 @@ type
 
 type
   TScriptSleepFunction = procedure (aTime : LongInt); StdCall;
+  TScriptInputBoxFunction = function(const Caption, Prompt, Default : string) : string;
 var
   LoadedLibs : TList;
   ActRuntime : TScript;
   DoSleep : TScriptSleepFunction = nil;
+  DoInputBox : TScriptInputBoxFunction = nil;
 
   procedure DoCleanUp;
 
@@ -215,6 +217,13 @@ begin
   IDCANCEL:Result := mrCancel;
   end;
   {$endif}
+end;
+
+function InputboxC ( const Caption, Prompt, Default : string ) : string;
+begin
+  Result := '';
+  if Assigned(DoInputBox) then
+    Result := DoInputBox(Caption,Prompt,Default);
 end;
 
 procedure ShowMessageC(const aMsg: string);
@@ -538,6 +547,7 @@ begin
         Comp.AddConstantN('mbAbortRetryIgnore','LongInt').Value^.ts32 := ord(4) or ord(5) or ord(6);
         AddFunction(@MessageDlgC,'Function MessageDlg( const Msg : string; DlgType : TMsgDlgType; Buttons : TMsgDlgButtons; HelpCtx : Longint) : Integer');
         AddFunction(@ShowMessageC,'Procedure ShowMessage( const Msg : string)');
+        AddFunction(@InputBoxC,'function Inputbox ( const Caption, Prompt, Default : string ) : string;');
         Result := True;
         {$ENDIF}
       end
