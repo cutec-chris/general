@@ -438,6 +438,8 @@ begin
           AddMethod(Self,@TPascalScript.InternalMkDir,'procedure MkDir(Dir : string);');
           AddMethod(Self,@TPascalScript.InternalClearScreen,'procedure ClearScreen;');
           AddMethod(Self,@TPascalScript.InternalBringToFront,'procedure BringToFront;');
+          AddFunction(@Randomize,'procedure Randomize;');
+          AddFunction(@Random,'function Random(l: LongInt):LongInt;');
         except
         end;
         uPSC_std.SIRegister_Std(Comp);
