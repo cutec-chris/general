@@ -564,6 +564,8 @@ begin
             if aLibName='' then
               aLibName := FindLib(ExtractFilePath(ParamStr(0))+'scriptplugins'+DirectorySeparator,cName);
             if aLibName='' then
+              aLibName := FindLib(ExtractFilePath(ParamStr(0))+'script plugins'+DirectorySeparator,cName);
+            if aLibName='' then
               aLibName := FindLib(ExtractFilePath(ParamStr(0))+'..'+DirectorySeparator+'scriptplugins'+DirectorySeparator,cName);
             if FileExists(aLibname) then
               begin
@@ -620,7 +622,7 @@ begin
                                 tmp2 := copy(tmp2,0,pos(';',tmp2)-1);
                                 if tmp2<>'' then
                                   tmp2 := ' '+tmp2;
-                                tmp := '  '+tmp1+'external '''+tmp+'@'+aLibname+tmp2+''';';
+                                tmp := '  '+tmp1+'external '''+tmp+'@"'+aLibname+'"'+tmp2+''';';
                               end
                             else tmp := '  '+sProc;
                             newUnit := newUnit+LineEnding+tmp;
