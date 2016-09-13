@@ -652,7 +652,7 @@ begin
                             sProc := aProc();
                             NewLib := TLoadedLib.Create;
                             NewLib.Name:=cName;
-                            NewLib.Code:=StringReplace(sProc,'%dllpath%',aLibName,[rfReplaceAll]);
+                            NewLib.Code:=StringReplace(sProc,'%dllpath%','"'+aLibName+'"',[rfReplaceAll]);
                             LoadedLibs.Add(NewLib);
                             Result := Comp.Compile(NewLib.Code);
                             for i := 0 to Comp.MsgCount-1 do
