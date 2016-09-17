@@ -438,6 +438,8 @@ begin
           AddMethod(Self,@TPascalScript.InternalMkDir,'procedure MkDir(Dir : string);');
           AddMethod(Self,@TPascalScript.InternalClearScreen,'procedure ClearScreen;');
           AddMethod(Self,@TPascalScript.InternalBringToFront,'procedure BringToFront;');
+          AddFunction(@Randomize,'procedure Randomize;');
+          AddFunction(@Random,'function Random(l: LongInt):LongInt;');
         except
         end;
         uPSC_std.SIRegister_Std(Comp);
@@ -562,6 +564,8 @@ begin
             if aLibName='' then
               aLibName := FindLib(ExtractFilePath(ParamStr(0))+'scriptplugins'+DirectorySeparator,cName);
             if aLibName='' then
+              aLibName := FindLib(ExtractFilePath(ParamStr(0))+'script plugins'+DirectorySeparator,cName);
+            if aLibName='' then
               aLibName := FindLib(ExtractFilePath(ParamStr(0))+'..'+DirectorySeparator+'scriptplugins'+DirectorySeparator,cName);
             if FileExists(aLibname) then
               begin
@@ -618,7 +622,7 @@ begin
                                 tmp2 := copy(tmp2,0,pos(';',tmp2)-1);
                                 if tmp2<>'' then
                                   tmp2 := ' '+tmp2;
-                                tmp := '  '+tmp1+'external '''+tmp+'@'+aLibname+tmp2+''';';
+                                tmp := '  '+tmp1+'external '''+tmp+'@"'+aLibname+'"'+tmp2+''';';
                               end
                             else tmp := '  '+sProc;
                             newUnit := newUnit+LineEnding+tmp;
@@ -648,7 +652,7 @@ begin
                             sProc := aProc();
                             NewLib := TLoadedLib.Create;
                             NewLib.Name:=cName;
-                            NewLib.Code:=StringReplace(sProc,'%dllpath%',aLibName,[rfReplaceAll]);
+                            NewLib.Code:=StringReplace(sProc,'%dllpath%','"'+aLibName+'"',[rfReplaceAll]);
                             LoadedLibs.Add(NewLib);
                             Result := Comp.Compile(NewLib.Code);
                             for i := 0 to Comp.MsgCount-1 do
