@@ -1203,7 +1203,13 @@ begin
     begin
       Compiler.GetDebugOutput(aDebugData);
       result := TPSDebugExec(FRuntime).LoadData(Bytecode);
-      TPSDebugExec(FRuntime).LoadDebugData(aDebugData);
+      if Result then
+        TPSDebugExec(FRuntime).LoadDebugData(aDebugData)
+      else
+        begin
+          if Assigned(OnCompileMessage) then OnCompileMessage(Self,'Runtime',Runtime.ExceptionString,0,0,0);
+          CompleteOutput:=CompleteOutput+Runtime.ExceptionString;
+        end;
     end
   else
     Result:= Result and FRuntime.LoadData(Bytecode);
