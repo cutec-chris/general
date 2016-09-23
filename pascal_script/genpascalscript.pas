@@ -1211,8 +1211,15 @@ begin
           CompleteOutput:=CompleteOutput+Runtime.ExceptionString;
         end;
     end
-  else
-    Result:= Result and FRuntime.LoadData(Bytecode);
+  else if Result then
+    begin
+      if not FRuntime.LoadData(Bytecode) then
+        begin
+          Result := False;
+          if Assigned(OnCompileMessage) then OnCompileMessage(Self,'Runtime',Runtime.ExceptionString,0,0,0);
+          CompleteOutput:=CompleteOutput+Runtime.ExceptionString;
+        end;
+    end;
   if Result and (not (Runtime is TPSDebugExec)) then
     FRuntime.OnRunLine:=@OnRunActLine;
 end;
