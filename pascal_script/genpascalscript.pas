@@ -583,7 +583,7 @@ begin
                         begin
                           CompleteOutput:=CompleteOutput+Compiler.Msg[a].MessageToString+LineEnding;
                           aMsg := Comp.Msg[a];
-                          if Assigned(OnCompileMessage) then OnCompileMessage(Self,aMsg.UnitName,Comp.Msg[i].MessageToString,Comp.Msg[i].Pos,Comp.Msg[i].Row,Comp.Msg[i].Col);
+                          if Assigned(OnCompileMessage) then OnCompileMessage(Self,aMsg.ModuleName,aMsg.MessageToString,aMsg.Pos,aMsg.Row,aMsg.Col);
                         end;
                       if not Result then
                         Debugln('Failed to compile Library:'+aLibName+' '+CompleteOutput);
@@ -1196,7 +1196,7 @@ begin
     begin
       CompleteOutput:=CompleteOutput+Compiler.Msg[i].MessageToString+LineEnding;
       aMsg := Compiler.Msg[i];
-      if Assigned(OnCompileMessage) then OnCompileMessage(Self,aMsg.UnitName,Compiler.Msg[i].MessageToString,Compiler.Msg[i].Pos,Compiler.Msg[i].Row,Compiler.Msg[i].Col);
+      if Assigned(OnCompileMessage) then OnCompileMessage(Self,aMsg.UnitName,aMsg.MessageToString,aMsg.Pos,aMsg.Row,aMsg.Col);
     end;
   Runtime.Clear;
   if FRuntime is TPSDebugExec then
