@@ -39,7 +39,7 @@ function TextCut(Len: Integer; Text: String): String;
 function InstallExt(Extension, ExtDescription, FileDescription,OpenWith, ParamString: string; IconIndex: Integer = 0): Boolean;
 function SystemUserName : string;
 function GetSystemName : string;
-function HTTPEncode(const str : String) : string;
+function HTTPEncode(const str : Pchar) : Pchar;
 function ValidateFileName(old : string) : string;
 function ValidateFileDir(old : string) : string;
 function ValidateDate(D : string) : string;
@@ -906,24 +906,26 @@ begin
   Result := GetHostName;
   {$ENDIF}
 end;
-function HTTPEncode(const str : String) : string;
+function HTTPEncode(const str : PChar) : PChar;
 const
   noconvert = ['A'..'Z','a'..'z','*','@','.','_','-','0'..'9','$','!','''','(',')'];
   hex2str : array[0..15] of char = '0123456789ABCDEF';
 var
   i : integer;
   c : char;
+  aResult: String;
 begin
-  Result := '';
+  aResult := '';
   for i:=1 to length(str) do
     begin
       c:=str[i];
       if c=#0 then exit;
       if c in noconvert then
-        Result:=Result+c
+        aResult:=aResult+c
       else
-        Result:=Result+'%'+hex2str[ord(c) shr 4]+hex2str[ord(c) and $f];
+        aResult:=aResult+'%'+hex2str[ord(c) shr 4]+hex2str[ord(c) and $f];
     end;
+  Result := PChar(aResult);
 end;
 {$IFDEF MSWINDOWS}
 function SystemUserName : string;
