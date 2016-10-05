@@ -39,7 +39,7 @@ function TextCut(Len: Integer; Text: String): String;
 function InstallExt(Extension, ExtDescription, FileDescription,OpenWith, ParamString: string; IconIndex: Integer = 0): Boolean;
 function SystemUserName : string;
 function GetSystemName : string;
-function HTTPEncode(const str : Pchar) : Pchar;
+function HTTPEncode(str : Pchar) : Pchar;
 function ValidateFileName(old : string) : string;
 function ValidateFileDir(old : string) : string;
 function ValidateDate(D : string) : string;
@@ -906,7 +906,7 @@ begin
   Result := GetHostName;
   {$ENDIF}
 end;
-function HTTPEncode(const str : PChar) : PChar;
+function HTTPEncode(str : PChar) : PChar;
 const
   noconvert = ['A'..'Z','a'..'z','*','@','.','_','-','0'..'9','$','!','''','(',')'];
   hex2str : array[0..15] of char = '0123456789ABCDEF';
@@ -914,11 +914,13 @@ var
   i : integer;
   c : char;
   aResult: String;
+  aIn: String;
 begin
+  aIn := str;
   aResult := '';
-  for i:=1 to length(str) do
+  for i:=1 to length(aIn) do
     begin
-      c:=str[i];
+      c:=aIn[i];
       if c=#0 then exit;
       if c in noconvert then
         aResult:=aResult+c
