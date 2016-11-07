@@ -472,6 +472,7 @@ begin
   if not Assigned(ActivePage) then exit;
   if (ActivePage.ControlCount > 0) and (ActivePage.Controls[0] is TFrame) then
     begin
+      TFrame(ActivePage.Controls[0]).Show;
       if TFrame(ActivePage.Controls[0]).CanFocus then
         TFrame(ActivePage.Controls[0]).SetFocus;
       if (ActivePage.Controls[0] is TExtControlFrame) then
