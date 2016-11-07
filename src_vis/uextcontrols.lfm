@@ -4,6 +4,6 @@ object ExtControlFrame: TExtControlFrame
   Top = 0
   Width = 320
   TabOrder = 0
-  DesignLeft = 671
-  DesignTop = 294
+  DesignLeft = 670
+  DesignTop = 269
 end

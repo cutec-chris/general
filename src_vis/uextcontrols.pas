@@ -189,7 +189,6 @@ type
     procedure RefreshMenue;
   protected
     procedure DoChange; override;
-    procedure Change; override;
     procedure InsertControl(AControl: TControl; Index: integer); override;
     procedure DoAutoSize; override;
     procedure Loaded; override;
@@ -202,6 +201,7 @@ type
     procedure AddTabClass(aFrameClass : TFrameClass;aName : string;aAddFunction : TNotifyEvent = nil;aImageIndex : Integer = -1;aMultiblePages : Boolean = False);
     procedure CanHaveCustomTabs(aAddFunction : TNotifyEvent = nil);
     procedure ClearTabClasses;
+    procedure Change; override;
     procedure CloseAll;
     procedure WillRemoveTab(aPage : TTabSheet);
     property TabTypes : string read FTabTypes write FTabTypes;
@@ -625,6 +625,7 @@ begin
   aNewItem.OnClick:=@CloseFrameClick;
   FCloseMenu.Items.Add(aNewItem);
   Self.OnContextPopup:=@ExtMenuPageControlContextPopup;
+  FDontChange:=False;
 end;
 destructor TExtMenuPageControl.Destroy;
 begin
@@ -707,7 +708,6 @@ begin
     TExtControlFrame(aFrame).FrameAdded;
   RefreshMenue;
   Result := Self.PageIndex;
-  Change;
 end;
 
 function TExtMenuPageControl.NewFrame(aFrameClass: TFrameClass;
