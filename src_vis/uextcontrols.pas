@@ -188,6 +188,7 @@ type
     procedure SetNewTabImageIndex(const AValue: Integer);
     procedure RefreshMenue;
   protected
+    procedure DoChange; override;
     procedure Change; override;
     procedure InsertControl(AControl: TControl; Index: integer); override;
     procedure DoAutoSize; override;
@@ -534,13 +535,14 @@ begin
   else
     Self.PopupMenu := FCloseMenu;
 end;
-procedure TExtMenuPageControl.Change;
+
+procedure TExtMenuPageControl.DoChange;
 var
   x: LongInt;
   i: Integer;
   aCnt: Integer;
 begin
-  inherited Change;
+  inherited DoChange;
   if FDontChange then exit;
   if Self.ActivePage = FNewPage then
     begin
@@ -580,6 +582,11 @@ begin
          if (Self.Pages[i].ControlCount > 0) and (Self.Pages[i].Controls[0] is TFrame) then
            Self.Pages[i].Controls[0].Hide;
        end;
+end;
+
+procedure TExtMenuPageControl.Change;
+begin
+  inherited Change;
 end;
 procedure TExtMenuPageControl.InsertControl(AControl: TControl; Index: integer
   );
