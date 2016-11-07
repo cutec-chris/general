@@ -159,6 +159,7 @@ type
     constructor Create(AOwner: TComponent); override;
     property TabCaption : string read FTabCaption write SetTabCaption;
     procedure ShowFrame;virtual;
+    procedure HideFrame;virtual;
     procedure FrameAdded;virtual;
     procedure DefineMenuEntrys;virtual;abstract;
     procedure DoRefresh(ForceRefresh : Boolean = False);virtual;
@@ -380,6 +381,17 @@ begin
         TExtControlFrame(TExtMenuPageControl(aPages).ActivePage.Controls[0]).ShowFrame;
 end;
 
+procedure TExtControlFrame.HideFrame;
+var
+  aPages: TComponent;
+begin
+  aPages := FindComponent('pcPages');
+  if Assigned(aPages) and (aPages is TExtMenuPageControl) then
+    if Assigned(TExtMenuPageControl(aPages).ActivePage) then
+      if (TExtMenuPageControl(aPages).ActivePage.ControlCount>0) and (TExtMenuPageControl(aPages).ActivePage.Controls[0] is TExtControlFrame) then
+        TExtControlFrame(TExtMenuPageControl(aPages).ActivePage.Controls[0]).HideFrame;
+end;
+
 procedure TExtControlFrame.FrameAdded;
 begin
 
@@ -554,12 +566,19 @@ begin
     end
   else if Assigned(ActivePage) and (ActivePage.ControlCount > 0) and (ActivePage.Controls[0] is TFrame) then
     begin
+      ActivePage.Controls[0].Show;
       if TFrame(ActivePage.Controls[0]).CanFocus then
         TFrame(ActivePage.Controls[0]).SetFocus;
       if (ActivePage.Controls[0] is TExtControlFrame) then
         TExtControlFrame(ActivePage.Controls[0]).ShowFrame;
       RefreshMenue;
     end;
+  for i := 0 to Self.PageCount-1 do
+     if Self.Pages[i]<>Self.ActivePage then
+       begin
+         if (Self.Pages[i].ControlCount > 0) and (Self.Pages[i].Controls[0] is TFrame) then
+           Self.Pages[i].Controls[0].Hide;
+       end;
 end;
 procedure TExtMenuPageControl.InsertControl(AControl: TControl; Index: integer
   );
@@ -680,6 +699,7 @@ begin
     TExtControlFrame(aFrame).FrameAdded;
   RefreshMenue;
   Result := Self.PageIndex;
+  Change;
 end;
 
 function TExtMenuPageControl.NewFrame(aFrameClass: TFrameClass;
