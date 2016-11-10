@@ -544,6 +544,12 @@ var
 begin
   inherited DoChange;
   if FDontChange then exit;
+  for i := 0 to Self.PageCount-1 do
+     if Self.Pages[i]<>Self.ActivePage then
+       begin
+         if (Self.Pages[i].ControlCount > 0) and (Self.Pages[i].Controls[0] is TFrame) and (Self.Pages[i].Tag<>999){Custom tab} then
+           Self.Pages[i].Controls[0].Hide;
+       end;
   if Self.ActivePage = FNewPage then
     begin
       aCnt := FMenu.Items.Count;
@@ -567,7 +573,7 @@ begin
       {$ENDIF}
       FMenu.PopUp(x,Self.ClientToScreen(Classes.Point(0,0)).y-2);
     end
-  else if Assigned(ActivePage) and (ActivePage.ControlCount > 0) and (ActivePage.Controls[0] is TFrame) then
+  else if Assigned(ActivePage) and (ActivePage.ControlCount > 0) and (ActivePage.Controls[0] is TFrame) and (ActivePage.Tag<>999){Custom tab} then
     begin
       ActivePage.Controls[0].Show;
       if TFrame(ActivePage.Controls[0]).CanFocus then
@@ -576,12 +582,6 @@ begin
         TExtControlFrame(ActivePage.Controls[0]).ShowFrame;
       RefreshMenue;
     end;
-  for i := 0 to Self.PageCount-1 do
-     if Self.Pages[i]<>Self.ActivePage then
-       begin
-         if (Self.Pages[i].ControlCount > 0) and (Self.Pages[i].Controls[0] is TFrame) then
-           Self.Pages[i].Controls[0].Hide;
-       end;
 end;
 
 procedure TExtMenuPageControl.Change;
