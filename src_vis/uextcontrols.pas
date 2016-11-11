@@ -573,9 +573,10 @@ begin
       {$ENDIF}
       FMenu.PopUp(x,Self.ClientToScreen(Classes.Point(0,0)).y-2);
     end
-  else if Assigned(ActivePage) and (ActivePage.ControlCount > 0) and (ActivePage.Controls[0] is TFrame) and (ActivePage.Tag<>999){Custom tab} then
+  else if Assigned(ActivePage) and (ActivePage.ControlCount > 0) and (ActivePage.Controls[0] is TFrame) then
     begin
-      ActivePage.Controls[0].Show;
+      if (ActivePage.Tag<>999){Custom tab} then
+        ActivePage.Controls[0].Show;
       if TFrame(ActivePage.Controls[0]).CanFocus then
         TFrame(ActivePage.Controls[0]).SetFocus;
       if (ActivePage.Controls[0] is TExtControlFrame) then
