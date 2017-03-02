@@ -1,10 +1,11 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <Package Version="3">
+  <Package Version="4">
     <PathDelim Value="\"/>
     <Name Value="general_nogui"/>
+    <AddToProjectUsesSection Value="True"/>
     <CompilerOptions>
-      <Version Value="9"/>
+      <Version Value="11"/>
       <PathDelim Value="\"/>
       <SearchPaths>
         <IncludeFiles Value="src"/>
@@ -17,11 +18,8 @@
           <Identifier Value="general_nogui_macro1"/>
         </Item1>
       </BuildMacros>
-      <Other>
-        <CompilerPath Value="$(CompPath)"/>
-      </Other>
     </CompilerOptions>
-    <Files Count="17">
+    <Files Count="18">
       <Item1>
         <Filename Value="src\Utils.pas"/>
         <UnitName Value="Utils"/>
@@ -90,12 +88,19 @@
         <Filename Value="src\comparewild.pas"/>
         <UnitName Value="comparewild"/>
       </Item17>
+      <Item18>
+        <Filename Value="src\uhttputil.pp"/>
+        <UnitName Value="uhttputil"/>
+      </Item18>
     </Files>
-    <RequiredPkgs Count="1">
+    <RequiredPkgs Count="2">
       <Item1>
+        <PackageName Value="laz_synapse"/>
+      </Item1>
+      <Item2>
         <PackageName Value="FCL"/>
         <MinVersion Major="1" Valid="True"/>
-      </Item1>
+      </Item2>
     </RequiredPkgs>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir)"/>
