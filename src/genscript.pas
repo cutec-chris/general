@@ -30,7 +30,7 @@ type
   TScript = class;
   TLineEvent = procedure(Sender : TScript;Module : string;Position,Row,Col : Integer) of object;
   TLineMessageEvent = procedure(Sender : TScript;Module,Message : string;Position,Row,Col : Integer) of object;
-  TScriptStatus = (ssNone,ssRunning,ssPaused);
+  TScriptStatus = (ssNone,ssCompiling,ssRunning,ssPaused);
   { TScript }
 
   TScript = class
