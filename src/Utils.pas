@@ -63,7 +63,8 @@ function DateTimeToIndustrialTime(dateTime : TDateTime) : string;
 function ConvertUnknownStringdate(input : string) : TDateTime;
 function HTMLEncodeTagless(const s: string): string;
 function HTMLEncode(const s : string)  : string;
-function HTMLDecode(const si : string)  : string;
+function HTTPDecode(const AStr: String): String;
+function HTMLDecode(const AStr: String): String;
 function UniToSys(s: string): string;
 function SysToUni(const s: string): string; inline;
 function AppendPathDelim(const Path: string): string; inline;
@@ -368,39 +369,12 @@ begin
   Result := StringReplace(result, '''', '&auml', [rfreplaceall]);
   Result := HTMLEncodeTagless(Result);
 end;
-function HTMLDecode(const si: string): string;
+function HTMLDecode(const AStr: String): String;
 var
   Sp, Rp, Cp, Tp: PChar;
   S: String;
   I, Code: Integer;
-  AStr: String;
 begin
-  Result := si;
-  Result := StringReplace(Result, '&amp;' ,'&', [rfreplaceall]);
-  Result := StringReplace(Result, '&quot;' ,'"', [rfreplaceall]);
-  Result := StringReplace(Result, '&bdquo;' ,'"', [rfreplaceall]);
-  Result := StringReplace(Result, '&ldquo;' ,'"', [rfreplaceall]);
-  Result := StringReplace(Result, '&rdquo;' ,'"', [rfreplaceall]);
-  Result := StringReplace(Result, '&raquo;' ,'"', [rfreplaceall]);
-  Result := StringReplace(Result, '&laquo;' ,'"', [rfreplaceall]);
-  Result := StringReplace(Result, '&rsaquo;' ,'"', [rfreplaceall]);
-  Result := StringReplace(Result, '&lsaquo;' ,'"', [rfreplaceall]);
-  Result := StringReplace(Result, '&lsquo;' ,'''', [rfreplaceall]);
-  Result := StringReplace(Result, '&rsquo;' ,'''', [rfreplaceall]);
-  Result := StringReplace(Result, '&sbquo;' ,'''', [rfreplaceall]);
-  Result := StringReplace(Result, '&ndash;' ,'-', [rfreplaceall]);
-  Result := StringReplace(Result, '&mdash;' ,'-', [rfreplaceall]);
-  Result := StringReplace(Result, '&lt;' ,'<', [rfreplaceall]);
-  Result := StringReplace(Result, '&gt;' ,'>', [rfreplaceall]);
-  Result := StringReplace(Result, '&nbsp;' ,' ', [rfreplaceall]);
-  Result := StringReplace(Result, '&auml;' ,'ä', [rfreplaceall]);
-  Result := StringReplace(Result, '&ouml;' ,'ö', [rfreplaceall]);
-  Result := StringReplace(Result, '&uuml;' ,'ü', [rfreplaceall]);
-  Result := StringReplace(Result, '&Auml;' ,'Ä', [rfreplaceall]);
-  Result := StringReplace(Result, '&Ouml;' ,'Ö', [rfreplaceall]);
-  Result := StringReplace(Result, '&Uuml;' ,'Ü', [rfreplaceall]);
-  Result := StringReplace(Result, '&szlig;','ß', [rfreplaceall]);
-  AStr := UniToSys(Result);
   SetLength(Result, Length(AStr));
   Sp := PChar(AStr);
   Rp := PChar(Result);
@@ -413,6 +387,33 @@ begin
                Cp := Sp;
                Inc(Sp);
                case Sp^ of
+                 'a': if AnsiStrPos(Sp, 'amp;') = Sp then  { do not localize }
+                      begin
+                        Inc(Sp, 3);
+                        Rp^ := '&';
+                      end;
+                 'l',
+                 'g': if (AnsiStrPos(Sp, 'lt;') = Sp) or (AnsiStrPos(Sp, 'gt;') = Sp) then { do not localize }
+                      begin
+                        Cp := Sp;
+                        Inc(Sp, 2);
+                        while (Sp^ <> ';') and (Sp^ <> #0) do
+                          Inc(Sp);
+                        if Cp^ = 'l' then
+                          Rp^ := '<'
+                        else
+                          Rp^ := '>';
+                      end;
+                 'n': if AnsiStrPos(Sp, 'nbsp;') = Sp then  { do not localize }
+                      begin
+                        Inc(Sp, 4);
+                        Rp^ := ' ';
+                      end;
+                 'q': if AnsiStrPos(Sp, 'quot;') = Sp then  { do not localize }
+                      begin
+                        Inc(Sp,4);
+                        Rp^ := '"';
+                      end;
                  '#': begin
                         Tp := Sp;
                         Inc(Tp);
@@ -439,6 +440,48 @@ begin
   Result := StringReplace(Result,#13#13,#13,[rfReplaceAll]);
   Result := StringReplace(Result,#10#10,#10,[rfReplaceAll]);
   Result := StringReplace(Result,#10#13#10#13,#10#13,[rfReplaceAll]);
+end;
+function HTTPDecode(const AStr: String): String;
+var
+  Sp, Rp, Cp: PChar;
+  S: String;
+begin
+  SetLength(Result, Length(AStr));
+  Sp := PChar(AStr);
+  Rp := PChar(Result);
+//  Cp := Sp;
+  try
+    while Sp^ <> #0 do
+    begin
+      case Sp^ of
+        '+': Rp^ := ' ';
+        '%': begin
+               // Look for an escaped % (%%) or %<hex> encoded character
+               Inc(Sp);
+               if Sp^ = '%' then
+                 Rp^ := '%'
+               else
+               begin
+                 Cp := Sp;
+                 Inc(Sp);
+                 if (Cp^ <> #0) and (Sp^ <> #0) then
+                 begin
+                   S := '$' + Cp^ + Sp^;
+                   Rp^ := Chr(StrToInt(S));
+                 end
+                 else
+                   raise Exception.CreateFmt('Error decoding URL style (%%XX) encoded string at position %d', [Cp - PChar(AStr)]);
+               end;
+             end;
+      else
+        Rp^ := Sp^;
+      end;
+      Inc(Rp);
+      Inc(Sp);
+    end;
+  except
+  end;
+  SetLength(Result, Rp - PChar(Result));
 end;
 var
   FNeedRTLAnsi: boolean = false;
