@@ -366,7 +366,7 @@ begin
   Result := StringReplace(Result, '"', '&quot;', [rfreplaceall]);
   Result := StringReplace(result, '<', '&lt;', [rfreplaceall]);
   Result := StringReplace(result, '>', '&gt;', [rfreplaceall]);
-  Result := StringReplace(result, '''', '&auml', [rfreplaceall]);
+  //Result := StringReplace(result, '''', '&auml', [rfreplaceall]);
   Result := HTMLEncodeTagless(Result);
 end;
 function HTMLDecode(const AStr: String): String;
@@ -375,71 +375,22 @@ var
   S: String;
   I, Code: Integer;
 begin
-  SetLength(Result, Length(AStr));
-  Sp := PChar(AStr);
-  Rp := PChar(Result);
-  Cp := Sp;
-  try
-    while Sp^ <> #0 do
-    begin
-      case Sp^ of
-        '&': begin
-               Cp := Sp;
-               Inc(Sp);
-               case Sp^ of
-                 'a': if AnsiStrPos(Sp, 'amp;') = Sp then  { do not localize }
-                      begin
-                        Inc(Sp, 3);
-                        Rp^ := '&';
-                      end;
-                 'l',
-                 'g': if (AnsiStrPos(Sp, 'lt;') = Sp) or (AnsiStrPos(Sp, 'gt;') = Sp) then { do not localize }
-                      begin
-                        Cp := Sp;
-                        Inc(Sp, 2);
-                        while (Sp^ <> ';') and (Sp^ <> #0) do
-                          Inc(Sp);
-                        if Cp^ = 'l' then
-                          Rp^ := '<'
-                        else
-                          Rp^ := '>';
-                      end;
-                 'n': if AnsiStrPos(Sp, 'nbsp;') = Sp then  { do not localize }
-                      begin
-                        Inc(Sp, 4);
-                        Rp^ := ' ';
-                      end;
-                 'q': if AnsiStrPos(Sp, 'quot;') = Sp then  { do not localize }
-                      begin
-                        Inc(Sp,4);
-                        Rp^ := '"';
-                      end;
-                 '#': begin
-                        Tp := Sp;
-                        Inc(Tp);
-                        while (Sp^ <> ';') and (Sp^ <> #0) do
-                          Inc(Sp);
-                        SetString(S, Tp, Sp - Tp);
-                        Val(S, I, Code);
-                        Rp^ := Chr((I));
-                      end;
-                 else
-                   Exit;
-               end;
-           end
-      else
-        Rp^ := Sp^;
-      end;
-      Inc(Rp);
-      Inc(Sp);
-    end;
-  except
-  end;
-  SetLength(Result, Rp - PChar(Result));
-  Result := SysToUni(Result);
+  Result := SysToUni(AStr);
   Result := StringReplace(Result,#13#13,#13,[rfReplaceAll]);
   Result := StringReplace(Result,#10#10,#10,[rfReplaceAll]);
   Result := StringReplace(Result,#10#13#10#13,#10#13,[rfReplaceAll]);
+  Result := StringReplace(Result, '&amp;','&', [rfreplaceall]);
+  Result := StringReplace(Result, '&quot;','"',  [rfreplaceall]);
+  Result := StringReplace(result, '&lt;','<', [rfreplaceall]);
+  Result := StringReplace(result, '&gt;','>', [rfreplaceall]);
+  Result := StringReplace(result, '&nbsp;',' ', [rfreplaceall]);
+  Result := StringReplace(Result, '&auml;','ä', [rfreplaceall]);
+  Result := StringReplace(result, '&ouml;','ö', [rfreplaceall]);
+  Result := StringReplace(result, '&uuml;','ü', [rfreplaceall]);
+  Result := StringReplace(result, '&Auml;','Ä', [rfreplaceall]);
+  Result := StringReplace(result, '&Ouml;','Ö', [rfreplaceall]);
+  Result := StringReplace(result, '&Uuml;','Ü', [rfreplaceall]);
+  Result := StringReplace(result, '&szlig;','ß', [rfreplaceall]);
 end;
 function HTTPDecode(const AStr: String): String;
 var
