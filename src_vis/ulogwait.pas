@@ -32,8 +32,11 @@ type
 
   TfLogWaitForm = class(TForm)
     bAbort: TBitBtn;
+    bSaveAs: TButton;
     lbLog: TListBox;
+    SaveDialog1: TSaveDialog;
     procedure bAbortClick(Sender: TObject);
+    procedure bSaveAsClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
     FAbort: Boolean;
@@ -107,6 +110,12 @@ procedure TfLogWaitForm.bAbortClick(Sender: TObject);
 begin
   FAbort:=True;
   if bAbort.Kind=bkClose then Close;
+end;
+
+procedure TfLogWaitForm.bSaveAsClick(Sender: TObject);
+begin
+  if SaveDialog1.Execute then
+    lbLog.Items.SaveToFile(SaveDialog1.FileName);
 end;
 
 initialization
