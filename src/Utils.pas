@@ -599,7 +599,7 @@ begin
   Result := int64(tv.tv_sec) * 1000 + tv.tv_usec div 1000;
 {$ENDIF}
 {$IFDEF WINDOWS}
-  Result := GetTickCount64;
+  Result := GetTickCount;
 {$ENDIF}
 end;
 
