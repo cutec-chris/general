@@ -375,7 +375,7 @@ var
   S: String;
   I, Code: Integer;
 begin
-  Result := SysToUni(AStr);
+  Result := AStr;
   Result := StringReplace(Result,#13#13,#13,[rfReplaceAll]);
   Result := StringReplace(Result,#10#10,#10,[rfReplaceAll]);
   Result := StringReplace(Result,#10#13#10#13,#10#13,[rfReplaceAll]);
