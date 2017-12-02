@@ -1241,7 +1241,10 @@ end;
 procedure TExtStringgrid.EditorShow(const SelAll: boolean);
 begin
   if Assigned(FBeforeEnterEdit) then FBeforeEnterEdit(Self);
-  inherited EditorShow(SelAll);
+  try
+    inherited EditorShow(SelAll);
+  except
+  end;
   if Assigned(FEnterEdit) then FEnterEdit(Self);
 end;
 
