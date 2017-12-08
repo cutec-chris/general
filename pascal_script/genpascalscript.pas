@@ -136,6 +136,7 @@ type
     function Pause: Boolean; override;
     function IsRunning: Boolean; override;
     function RunScriptFunction(const Params: array of Variant;fName : string): Variant; override;
+    function FindScriptFunction(fName : string): Boolean; override;
     function GetVarContents(Identifier: string): string;override;
     constructor Create;override;
     destructor Destroy; override;
@@ -1305,6 +1306,24 @@ begin
             raise Exception.Create(tmp);
           end
         else raise;
+      end;
+  end;
+end;
+
+function TPascalScript.FindScriptFunction(fName: string): Boolean;
+var
+  tmp: TbtString;
+  aCode: TPSError;
+begin
+  try
+    Result := True;
+    if ByteCode='' then Result := Compile;
+    if Result then
+      Result := Runtime.GetProc(fName) <> InvalidVal;
+  except
+    on e : Exception do
+      begin
+        Result := False;
       end;
   end;
 end;

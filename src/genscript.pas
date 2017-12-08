@@ -87,6 +87,7 @@ type
     function Stop : Boolean;virtual;
     function IsRunning : Boolean;virtual;
     function RunScriptFunction(const Params : array of Variant;aName : string) : Variant;virtual;
+    function FindScriptFunction(aName : string) : Boolean;virtual;
     function GetVarContents(Identifier : string) : string;virtual;
     property Parent : TObject read FParent write fParent;
     property OnStatusChanged : TNotifyEvent read FStatusChanged write FStatusChanged;
@@ -235,6 +236,11 @@ function TScript.RunScriptFunction(const Params: array of Variant; aName: string
 begin
   Result := Null;
   raise Exception.Create('not Implemented');
+end;
+
+function TScript.FindScriptFunction(aName: string): Boolean;
+begin
+  Result := False;
 end;
 
 function TScript.GetVarContents(Identifier: string): string;
