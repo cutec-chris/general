@@ -155,6 +155,7 @@ var
   DoInputBox : TScriptInputBoxFunction = nil;
 
   procedure DoCleanUp;
+  function CleanupLibs : Boolean;
 
 implementation
 
@@ -254,6 +255,23 @@ begin
       except
       end;
     end;
+end;
+
+function CleanupLibs : Boolean;
+var
+  i: Integer;
+  aLib: TLoadedLib;
+begin
+  DoCleanUp;
+  for i := 0 to LoadedLibs.Count-1 do
+    begin
+      try
+        aLib := TLoadedLib(LoadedLibs[i]);
+        UnloadLibrary(aLib.Handle);
+      except
+      end;
+    end;
+  LoadedLibs.Clear;
 end;
 
 function UnloadProcInt(Caller: TPSExec; p: TPSExternalProcRec; Global, Stack: TPSStack): Boolean;
@@ -441,6 +459,7 @@ begin
           AddMethod(Self,@TPascalScript.InternalBringToFront,'procedure BringToFront;');
           AddFunction(@Randomize,'procedure Randomize;');
           AddFunction(@Random,'function Random(l: LongInt):LongInt;');
+          AddFunction(@CleanupLibs,'function CleanupLibs : Boolean;');
         except
         end;
         uPSC_std.SIRegister_Std(Comp);
