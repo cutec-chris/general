@@ -24,7 +24,7 @@
         <UnitName Value="uccompiler"/>
       </Item3>
     </Files>
-    <RequiredPkgs Count="3">
+    <RequiredPkgs Count="2">
       <Item1>
         <PackageName Value="general_nogui"/>
       </Item1>
@@ -32,9 +32,6 @@
         <PackageName Value="ppascalscriptfcl"/>
         <DefaultFilename Value="..\..\promet\source\components\pascalscript\Source\ppascalscriptfcl.lpk"/>
       </Item2>
-      <Item3>
-        <PackageName Value="FCL"/>
-      </Item3>
     </RequiredPkgs>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir)"/>

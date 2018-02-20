@@ -1,18 +1,16 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <Package Version="3">
+  <Package Version="4">
     <PathDelim Value="\"/>
     <Name Value="general_python_script"/>
+    <AddToProjectUsesSection Value="True"/>
     <CompilerOptions>
-      <Version Value="9"/>
+      <Version Value="11"/>
       <PathDelim Value="\"/>
       <SearchPaths>
         <OtherUnitFiles Value="src"/>
         <UnitOutputDirectory Value="lib\python\$(TargetCPU)-$(TargetOS)-$(LCLWidgetType)"/>
       </SearchPaths>
-      <Other>
-        <CompilerPath Value="$(CompPath)"/>
-      </Other>
     </CompilerOptions>
     <Files Count="1">
       <Item1>
@@ -20,7 +18,7 @@
         <UnitName Value="genpythonscript"/>
       </Item1>
     </Files>
-    <RequiredPkgs Count="3">
+    <RequiredPkgs Count="2">
       <Item1>
         <PackageName Value="P4DFpc"/>
         <DefaultFilename Value="..\..\promet\source\components\python4delphi\PythonForDelphi\Components\P4DFpc.lpk"/>
@@ -29,9 +27,6 @@
         <PackageName Value="general_nogui"/>
         <DefaultFilename Value="..\general_nogui.lpk"/>
       </Item2>
-      <Item3>
-        <PackageName Value="FCL"/>
-      </Item3>
     </RequiredPkgs>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir);$(PkgOutDir)\src"/>
@@ -40,4 +35,4 @@
       <Version Value="2"/>
     </PublishOptions>
   </Package>
-</CONFIG>
+</CONFIG>
