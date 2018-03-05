@@ -19,7 +19,7 @@
         </Item1>
       </BuildMacros>
     </CompilerOptions>
-    <Files Count="18">
+    <Files Count="17">
       <Item1>
         <Filename Value="src\Utils.pas"/>
         <UnitName Value="Utils"/>
@@ -73,31 +73,31 @@
         <UnitName Value="uEncrypt"/>
       </Item13>
       <Item14>
-        <Filename Value="src\ubasedatasetinterfaces.pas"/>
-        <UnitName Value="uBaseDatasetInterfaces"/>
-      </Item14>
-      <Item15>
         <Filename Value="src\pwgenerator.pas"/>
         <UnitName Value="pwgenerator"/>
-      </Item15>
-      <Item16>
+      </Item14>
+      <Item15>
         <Filename Value="src\genscript.pas"/>
         <UnitName Value="genscript"/>
-      </Item16>
-      <Item17>
+      </Item15>
+      <Item16>
         <Filename Value="src\comparewild.pas"/>
         <UnitName Value="comparewild"/>
-      </Item17>
-      <Item18>
+      </Item16>
+      <Item17>
         <Filename Value="src\uhttputil.pp"/>
         <UnitName Value="uhttputil"/>
-      </Item18>
+      </Item17>
     </Files>
-    <RequiredPkgs Count="1">
+    <RequiredPkgs Count="2">
       <Item1>
+        <PackageName Value="avammdblayer"/>
+        <DefaultFilename Value="..\promet\source\components\avamm-db-layer\avammdblayer.lpk"/>
+      </Item1>
+      <Item2>
         <PackageName Value="laz_synapse"/>
         <DefaultFilename Value="..\promet\source\components\synapse\laz_synapse.lpk"/>
-      </Item1>
+      </Item2>
     </RequiredPkgs>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir)"/>
