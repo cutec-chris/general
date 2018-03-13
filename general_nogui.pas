@@ -9,7 +9,7 @@ interface
 uses
   Utils, uGeneralStrConsts, SecureUtils, umashineid, uModifiedDS, uRTFtoTXT, 
   MathParser, Aspell, usimpleprocess, uSunRise, UtilsDate, uminiconvencoding, 
-  uEncrypt, pwgenerator, genscript, comparewild, uhttputil;
+  pwgenerator, genscript, comparewild, uhttputil;
 
 implementation
 

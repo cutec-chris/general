@@ -19,7 +19,7 @@
         </Item1>
       </BuildMacros>
     </CompilerOptions>
-    <Files Count="17">
+    <Files Count="16">
       <Item1>
         <Filename Value="src\Utils.pas"/>
         <UnitName Value="Utils"/>
@@ -69,25 +69,21 @@
         <UnitName Value="uminiconvencoding"/>
       </Item12>
       <Item13>
-        <Filename Value="src\uencrypt.pas"/>
-        <UnitName Value="uEncrypt"/>
-      </Item13>
-      <Item14>
         <Filename Value="src\pwgenerator.pas"/>
         <UnitName Value="pwgenerator"/>
-      </Item14>
-      <Item15>
+      </Item13>
+      <Item14>
         <Filename Value="src\genscript.pas"/>
         <UnitName Value="genscript"/>
-      </Item15>
-      <Item16>
+      </Item14>
+      <Item15>
         <Filename Value="src\comparewild.pas"/>
         <UnitName Value="comparewild"/>
-      </Item16>
-      <Item17>
+      </Item15>
+      <Item16>
         <Filename Value="src\uhttputil.pp"/>
         <UnitName Value="uhttputil"/>
-      </Item17>
+      </Item16>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>
