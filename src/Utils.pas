@@ -39,7 +39,7 @@ function TextCut(Len: Integer; Text: String): String;
 function InstallExt(Extension, ExtDescription, FileDescription,OpenWith, ParamString: string; IconIndex: Integer = 0): Boolean;
 function SystemUserName : string;
 function GetSystemName : string;
-function HTTPEncode(str : Pchar) : Pchar;
+function HTTPEncode(str : string) : string;
 function ValidateFileName(old : string) : string;
 function ValidateFileDir(old : string) : string;
 function ValidateDate(D : string) : string;
@@ -900,7 +900,7 @@ begin
   Result := GetHostName;
   {$ENDIF}
 end;
-function HTTPEncode(str : PChar) : PChar;
+function HTTPEncode(str : string) : string;
 const
   noconvert = ['A'..'Z','a'..'z','*','@','.','_','-','0'..'9','$','!','''','(',')'];
   hex2str : array[0..15] of char = '0123456789ABCDEF';
@@ -921,7 +921,7 @@ begin
       else
         aResult:=aResult+'%'+hex2str[ord(c) shr 4]+hex2str[ord(c) and $f];
     end;
-  Result := PChar(aResult);
+  Result := aResult;
 end;
 {$IFDEF MSWINDOWS}
 function SystemUserName : string;
