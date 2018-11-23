@@ -197,6 +197,7 @@ type
     destructor Destroy;override;
     function AddTab(aFrame : TFrame;SetActive : Boolean = True;NewName : string = '';aImageIndex : Integer = -1;UseFunction : Boolean = True) : Integer;
     function NewFrame(aFrameClass : TFrameClass;AddFrame : Boolean;aClassName : string;aAddFunction : TNotifyEvent = nil;SetActive : Boolean = True;NewName : string = '';aImageIndex : Integer = -1;UseFunction : Boolean = True) : Boolean;
+    procedure EnableMenu(aName : string);
     function GetTab(aFrameClass : TFrameClass) : TTabSheet;
     procedure AddTabClass(aFrameClass : TFrameClass;aName : string;aAddFunction : TNotifyEvent = nil;aImageIndex : Integer = -1;aMultiblePages : Boolean = False);
     procedure CanHaveCustomTabs(aAddFunction : TNotifyEvent = nil);
@@ -741,14 +742,20 @@ begin
     begin
       aFrame := GetTab(aFrameClass);
       if Assigned(FMenu) and Assigned(aFrame) then
-        for i := 0 to FMenu.Items.Count-1 do
-           if Fmenu.Items[i].Caption = aFrame.Caption then
-             FMenu.Items[i].Enabled := True;
+        EnableMenu(aFrame.Caption);
       if Assigned(aFrame) then aFrame.Free;
-
     end;
   if ActivePage=FNewPage then
     PageIndex:=0;
+end;
+
+procedure TExtMenuPageControl.EnableMenu(aName: string);
+var
+  i: Integer;
+begin
+  for i := 0 to FMenu.Items.Count-1 do
+     if Fmenu.Items[i].Caption = aName then
+       FMenu.Items[i].Enabled := True;
 end;
 
 function TExtMenuPageControl.GetTab(aFrameClass: TFrameClass): TTabSheet;
