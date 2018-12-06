@@ -489,6 +489,8 @@ begin
         AddFunction(@SetCurrentDir,'function SetCurrentDir ( const Dir : string ) : Boolean;');
         AddFunction(@FileExists,'function FileExists (Const FileName : String) : Boolean;');
         AddFunction(@SysUtils.DeleteFile,'Function DeleteFile (Const FileName : String) : Boolean;');
+        AddFunction(@ForceDirectories,'function forcedirectories ( const Path : string ) : Boolean;');
+        AddFunction(@CreateDir,'function CreateDir ( const Dir : string ) : Boolean;');
         Comp.AddTypeS('TFindRec','record' +
                                  ' Time : TDateTime;'+
                                  ' Size : Int64;'+
