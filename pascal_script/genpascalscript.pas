@@ -87,6 +87,7 @@ type
   protected
     procedure InternalChDir(Directory : string);
     procedure InternalMkDir(Directory : string);
+    function InternalCopyFile(const SrcFilename, DestFilename: string): boolean;
     function InternalApplicationDir : string;
     function InternalDirectoryExists(Const Directory : String) : Boolean;
 
@@ -491,6 +492,7 @@ begin
         AddFunction(@SysUtils.DeleteFile,'Function DeleteFile (Const FileName : String) : Boolean;');
         AddFunction(@ForceDirectories,'function forcedirectories ( const Path : string ) : Boolean;');
         AddFunction(@CreateDir,'function CreateDir ( const Dir : string ) : Boolean;');
+        AddMethod(Self,@TPascalScript.InternalCopyFile,'function CopyFile(const SrcFilename, DestFilename: string): boolean;');
         Comp.AddTypeS('TFindRec','record' +
                                  ' Time : TDateTime;'+
                                  ' Size : Int64;'+
@@ -1086,6 +1088,19 @@ end;
 procedure TPascalScript.InternalMkDir(Directory: string);
 begin
   CreateDir(UniToSys(Directory));
+end;
+
+function TPascalScript.InternalCopyFile(const SrcFilename, DestFilename: string
+  ): boolean;
+var
+  aSource: TFileStream;
+  aDest: TFileStream;
+begin
+  aSource := TFileStream.Create(SrcFilename,fmOpenRead);
+  aDest := TFileStream.Create(DestFilename,fmCreate);
+  aDest.CopyFrom(aSource,0);
+  aSource.Free;
+  aDest.Free;
 end;
 
 function TPascalScript.InternalApplicationDir: string;
