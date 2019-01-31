@@ -170,7 +170,10 @@ begin
           and (trim(FLines[i])<>'')
           then
             FLines[i] := FLines[i]+';prometinternals._CallLineInfo('+IntToStr(i)+')';
-        fEngine.ExecString(FLines.Text);
+        try
+          fEngine.ExecString(FLines.Text);
+        except
+        end;
         FreeAndNil(FLines);
       end
     else fEngine.ExecString(Source);
