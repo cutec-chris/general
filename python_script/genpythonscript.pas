@@ -166,6 +166,11 @@ begin
         FLines := TStringList.Create;
         FLines.Text:=Source;
         for i := 0 to FLines.Count-1 do
+          if (Uppercase(copy(trim(FLines[i]),0,6))='IMPORT') then
+            begin
+
+            end;
+        for i := 0 to FLines.Count-1 do
           if (copy(trim(FLines[i]),length(trim(FLines[i])),1)<>':')
           and (trim(FLines[i])<>'')
           then
