@@ -1247,12 +1247,12 @@ end;
 
 procedure TExtStringgrid.EditorShow(const SelAll: boolean);
 begin
-  if Assigned(FBeforeEnterEdit) then FBeforeEnterEdit(Self);
-  try
-    inherited EditorShow(SelAll);
-  except
-  end;
-  if Assigned(FEnterEdit) then FEnterEdit(Self);
+  if (Col-FixedCols)>-1 then
+    begin
+      if Assigned(FBeforeEnterEdit) then FBeforeEnterEdit(Self);
+      inherited EditorShow(SelAll);
+      if Assigned(FEnterEdit) then FEnterEdit(Self);
+    end;
 end;
 
 procedure TExtStringgrid.DblClick;
