@@ -90,6 +90,7 @@ type
     function InternalCopyFile(const SrcFilename, DestFilename: string): boolean;
     function InternalApplicationDir : string;
     function InternalDirectoryExists(Const Directory : String) : Boolean;
+    function InternalFileExists (Const FileName : String) : Boolean;
 
     function InternalExec(cmd : string) : Integer;
     function InternalExecAndWatch(cmd : string;OnWriteln : TWriteStringEvent) : Integer;
@@ -488,7 +489,7 @@ begin
         AddFunction(@IntToHex,'function IntToHex(Value: integer; Digits: integer) : string;');
         AddFunction(@GetCurrentDir,'function GetCurrentDir : string;');
         AddFunction(@SetCurrentDir,'function SetCurrentDir ( const Dir : string ) : Boolean;');
-        AddFunction(@FileExists,'function FileExists (Const FileName : String) : Boolean;');
+        AddMethod(Self,@TPascalScript.InternalFileExists,'function FileExists (Const FileName : String) : Boolean;');
         AddFunction(@SysUtils.DeleteFile,'Function DeleteFile (Const FileName : String) : Boolean;');
         AddFunction(@ForceDirectories,'function forcedirectories ( const Path : string ) : Boolean;');
         AddFunction(@CreateDir,'function CreateDir ( const Dir : string ) : Boolean;');
@@ -1112,6 +1113,11 @@ function TPascalScript.InternalDirectoryExists(const Directory: String
   ): Boolean;
 begin
   Result := DirectoryExists(UniToSys(Directory));
+end;
+
+function TPascalScript.InternalFileExists(const FileName: String): Boolean;
+begin
+  Result := FileExists(Filename);
 end;
 
 function TPascalScript.Execute(aParameters: Variant; Debug: Boolean): Boolean;
