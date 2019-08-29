@@ -46,10 +46,9 @@ type
   TPascalScript = class;
 
   TInternalFindRec = Record
-    Time : TDateTime;
-    Size : Int64;
-    Attr : Longint;
     Name : string;
+    Size : Integer;
+    Attr : Longint;
   end;
 
   TIPSPascalCompiler = class(TPSPascalCompiler)
@@ -392,7 +391,7 @@ begin
         FindRec.Attr:=FFindRec.Attr;
         FindRec.Name:=SysToUni(FFindRec.Name);
         FindRec.Size:=FFindRec.Size;
-        FindRec.Time:=FileDateToDateTime(FFindRec.Time);
+        //FindRec.Time:=FileDateToDateTime(FFindRec.Time);
       end;
   except
     Result := False;
@@ -407,7 +406,7 @@ begin
         FindRec.Attr:=FFindRec.Attr;
         FindRec.Name:=SysToUni(FFindRec.Name);
         FindRec.Size:=FFindRec.Size;
-        FindRec.Time:=FileDateToDateTime(FFindRec.Time);
+        //FindRec.Time:=FileDateToDateTime(FFindRec.Time);
       end;
   except
     Result := False;
@@ -495,10 +494,9 @@ begin
         AddFunction(@CreateDir,'function CreateDir ( const Dir : string ) : Boolean;');
         AddMethod(Self,@TPascalScript.InternalCopyFile,'function CopyFile(const SrcFilename, DestFilename: string): boolean;');
         Comp.AddTypeS('TFindRec','record' +
-                                 ' Time : TDateTime;'+
-                                 ' Size : Int64;'+
-                                 ' Attr : Longint;'+
                                  ' Name : string;'+
+                                 ' Size : Integer;'+
+                                 ' Attr : Longint;'+
                                  'end');
         AddMethod(Self,@TPascalScript.InternalFindFirst,'function FindFirst(const FileName: String; var FindRec: TFindRec): Boolean;');
         AddMethod(Self,@TPascalScript.InternalFindNext,'function FindNext(var FindRec: TFindRec): Boolean;');
