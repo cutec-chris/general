@@ -19,7 +19,7 @@
         </Item1>
       </BuildMacros>
     </CompilerOptions>
-    <Files Count="16">
+    <Files Count="15">
       <Item1>
         <Filename Value="src\Utils.pas"/>
         <UnitName Value="Utils"/>
@@ -49,51 +49,43 @@
         <UnitName Value="MathParser"/>
       </Item7>
       <Item8>
-        <Filename Value="src\aspell.pas"/>
-        <UnitName Value="Aspell"/>
-      </Item8>
-      <Item9>
         <Filename Value="src\usimpleprocess.pas"/>
         <UnitName Value="usimpleprocess"/>
-      </Item9>
-      <Item10>
+      </Item8>
+      <Item9>
         <Filename Value="src\usunrise.pas"/>
         <UnitName Value="uSunRise"/>
-      </Item10>
-      <Item11>
+      </Item9>
+      <Item10>
         <Filename Value="src\utilsdate.pas"/>
         <UnitName Value="UtilsDate"/>
-      </Item11>
-      <Item12>
+      </Item10>
+      <Item11>
         <Filename Value="src\uminiconvencoding.pas"/>
         <UnitName Value="uminiconvencoding"/>
-      </Item12>
-      <Item13>
+      </Item11>
+      <Item12>
         <Filename Value="src\pwgenerator.pas"/>
         <UnitName Value="pwgenerator"/>
-      </Item13>
-      <Item14>
+      </Item12>
+      <Item13>
         <Filename Value="src\genscript.pas"/>
         <UnitName Value="genscript"/>
-      </Item14>
-      <Item15>
+      </Item13>
+      <Item14>
         <Filename Value="src\comparewild.pas"/>
         <UnitName Value="comparewild"/>
-      </Item15>
-      <Item16>
+      </Item14>
+      <Item15>
         <Filename Value="src\uhttputil.pp"/>
         <UnitName Value="uhttputil"/>
-      </Item16>
+      </Item15>
     </Files>
-    <RequiredPkgs Count="2">
+    <RequiredPkgs Count="1">
       <Item1>
-        <PackageName Value="avammdblayer"/>
-        <DefaultFilename Value="..\promet\source\components\avamm-db-layer\avammdblayer.lpk"/>
-      </Item1>
-      <Item2>
         <PackageName Value="laz_synapse"/>
         <DefaultFilename Value="..\promet\source\components\synapse\laz_synapse.lpk"/>
-      </Item2>
+      </Item1>
     </RequiredPkgs>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir)"/>
